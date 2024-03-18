@@ -1,0 +1,20 @@
+# C/C++ Code Style settings
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+Language: Cpp
+BasedOnStyle: Google 
+ColumnLimit: 80 
+Standard: c++20
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never 
+AccessModifierOffset: -4
+BreakConstructorInitializers: AfterColon
+AlignConsecutiveDeclarations: true 
+AllowShortFunctionsOnASingleLine: Inline
+PointerAlignment: Left
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: MultiLine
+BreakBeforeBinaryOperators: NonAssignment
