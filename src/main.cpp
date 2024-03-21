@@ -25,7 +25,7 @@ int main()
     // main_box.render_str(fonts_collection["arial"], {0.0f, 0.0f, 0.5f});
 
     // show title ViNo for 7s
-    // vino::titleScreen(main_window);
+    vino::titleScreen(main_window);
 
     // show main menu
     vino::mainMenu(main_window);
