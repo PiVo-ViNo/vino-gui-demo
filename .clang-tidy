@@ -16,7 +16,6 @@ Checks: >
   readability-identifier-naming,
   -performance-avoid-endl,
   -modernize-use-trailing-return-type,
-  -llmv-include-order
 
 CheckOptions:
   - key:             readability-identifier-naming.LocalPointerCase
@@ -47,3 +46,5 @@ CheckOptions:
     value:           1
   - key:             modernize-use-default-member-init.UseAssignment
     value:           1
+  - key:             llmv-include-order
+    value:           0

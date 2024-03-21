@@ -1,19 +1,9 @@
 // #define STB_IMAGE_IMPLEMENTATION
 #include <iostream>
 
+#include "Window.hpp"
 #include "MainMenu.hpp"
 #include "TitleScreen.hpp"
-#include "Window.hpp"
-#include "Fonts.hpp"
-
-namespace vino {
-
-struct Box {
-    const float positions_coord;
-    const float texture_coord;
-};
-
-} // namespace vino
 
 int main()
 {
@@ -25,10 +15,17 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+    // glEnable(GL_CULL_FACE);
 
-    int ft_err = vino::load_libFreeType();
+    // vino::FontsCollection fonts_collection; 
+    // fonts_collection.add_font("../fonts/ARIAL.ttf");
+    // fonts_collection["arial"]; // -> Font
+
+    // vino::Box main_box();
+    // main_box.render_str(fonts_collection["arial"], {0.0f, 0.0f, 0.5f});
+
     // show title ViNo for 7s
-    vino::titleScreen(main_window);
+    // vino::titleScreen(main_window);
 
     // show main menu
     vino::mainMenu(main_window);

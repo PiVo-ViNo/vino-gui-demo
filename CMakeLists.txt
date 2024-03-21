@@ -16,13 +16,14 @@ FetchContent_Declare(
     SOURCE_DIR ${DEPS_SRC}/ft2
 )
 FetchContent_Declare(
-    glfw3
+    glfw
     URL https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.zip
     SOURCE_DIR ${DEPS_SRC}/glfw3
-    FIND_PACKAGE_ARGS 3.3...<3.5
 )
-FetchContent_MakeAvailable(glm ft2 glfw3)
-
+FetchContent_MakeAvailable(glm ft2 glfw)
+ 
+add_compile_options(-Wall -Wextra -gdwarf-4)
+ 
 add_executable(vino_gui 
     src/main.cpp 
     src/glad.c 
@@ -31,18 +32,35 @@ add_executable(vino_gui
     src/MainMenu.cpp
     src/ImgData.cpp
     src/Fonts.cpp
+    src/Box.cpp
 )
-
+ 
 target_include_directories(vino_gui
     PUBLIC "${CMAKE_SOURCE_DIR}/include"
     PUBLIC "${DEPS_SRC}/ft2/include"
     PUBLIC "${DEPS_SRC}/glm"
+    PUBLIC "${DEPS_SRC}/glfw3/include"
 )
-
+ 
 target_link_libraries(vino_gui 
-    PRIVATE glfw3
+    PRIVATE glfw
     PRIVATE freetype 
 )
+ 
+# add_executable(ft_test
+#    src/ft_test.cpp
+#    src/glad.c
+# )
+# target_include_directories(ft_test
+#    PUBLIC "${CMAKE_SOURCE_DIR}/include"
+#    PUBLIC "${DEPS_SRC}/ft2/include"
+#    PUBLIC "${DEPS_SRC}/glm"
+# )
+# target_link_libraries(ft_test
+#    PRIVATE glfw3
+#    PRIVATE freetype 
+#    PRIVATE User32.dll
+# )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

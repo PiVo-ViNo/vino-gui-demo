@@ -13,11 +13,26 @@
 namespace vino {
 
 /**
-@brief Base Window class, don't use
+@brief Base Window class
 @warning Don't actually create glfw window
 */
 class Window {
 public:
+    Window(const Window& other) = delete;
+
+    virtual ~Window() { glfwTerminate(); }
+
+    void make_current();
+    bool should_close();
+    void close();
+    void swap_buffers();
+    int get_attribute(int glfw_attribute);
+    bool is_pressed(int glfw_key);
+
+    [[nodiscard]] uint32_t get_width() const;
+    [[nodiscard]] uint32_t get_height() const;
+
+protected:
     Window(uint32_t width, uint32_t height) : _width(width), _height(height)
     {
         glfwInit();
@@ -27,16 +42,6 @@ public:
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     }
 
-    virtual ~Window() { glfwTerminate(); }
-
-    void make_current();
-    bool should_close();
-    void swap_buffers();
-    int get_attribute(int glfw_attribute);
-    bool is_pressed(int glfw_key);
-    void close();
-
-protected:
     uint32_t    _width{};
     uint32_t    _height{};
     GLFWwindow* ptrWindow = nullptr;

@@ -28,9 +28,9 @@ void titleScreen(vino::Window& window)
 
     while (!window.should_close()) {
         double time = glfwGetTime();
-        // if (time > 6.0) {
-            // return;
-        // }
+        if (time > 6.0) {
+            return;
+        }
         float  alpha = -((time - 2.5) / 2.5) * ((time - 2.5) / 2.5) + 1;
         title_shader.setFloat("ufAlpha", alpha);
 

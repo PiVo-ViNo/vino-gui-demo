@@ -5,11 +5,12 @@
 #include <glad/glad.h>  // include glad to get all the required OpenGL headers
 
 #include <fstream>
-#include <glm.hpp>
-#include <gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include <glm.hpp>
+#include <gtc/type_ptr.hpp>
 
 namespace vino {
 
@@ -26,6 +27,8 @@ public:
     void setFloat(const std::string& name, float value) const;
     void setVec3Float(const std::string& name, float, float, float) const;
     void setMat4FloatV(const std::string& name, const glm::mat4& mat) const;
+
+    unsigned int get_id() { return id; }
 
 private:
     // the program id
@@ -97,7 +100,7 @@ inline Shader::Shader(const char* vertexPath, const char* fragmentPath)
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex, 512, nullptr, info_log);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
                   << info_log << std::endl;
     }
 
