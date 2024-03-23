@@ -60,17 +60,17 @@ void FreeTypeFace::load_ascii()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Character& FreeTypeFace::get_char(char ch)
+Character& FreeTypeFace::get_char(const char& ch)
 {
     return _chars_map[ch];
 }
 
 void Font::render_str(const std::string& str, unsigned int vbo, unsigned int x,
-                      unsigned int y, float scale, glm::vec3 color)
+                      unsigned int y, float scale)
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    for (char c : str) {
+    for (const char& c : str) {
         Character ch = _face.get_char(c);
 
         float xpos = x + ch.bearing.x * scale;

@@ -23,12 +23,16 @@ public:
     virtual ~Window() { glfwTerminate(); }
 
     void make_current();
-    bool should_close();
     void close();
     void swap_buffers();
-    int get_attribute(int glfw_attribute);
-    bool is_pressed(int glfw_key);
 
+    int get_attribute(int glfw_attribute);
+
+    [[nodiscard]] bool should_close() const;
+    [[nodiscard]] bool is_pressed(int glfw_key) const;
+    [[nodiscard]] bool is_clicked() const;
+
+    [[nodiscard]] std::pair<int, int> get_cursor_pos() const;
     [[nodiscard]] uint32_t get_width() const;
     [[nodiscard]] uint32_t get_height() const;
 

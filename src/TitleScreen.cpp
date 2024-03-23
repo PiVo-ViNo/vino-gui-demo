@@ -28,7 +28,7 @@ void titleScreen(vino::Window& window)
 
     while (!window.should_close()) {
         double time = glfwGetTime();
-        if (time > 6.0) {
+        if (time > 6.0 || window.is_pressed(GLFW_KEY_SPACE)) {
             return;
         }
         float  alpha = -((time - 2.5) / 2.5) * ((time - 2.5) / 2.5) + 1;

@@ -3,3 +3,4 @@ build/
 .vscode
 compile_commands.json
 _deps_src
+out/

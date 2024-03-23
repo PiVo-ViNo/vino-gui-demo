@@ -2,7 +2,6 @@
 
 #include "custom_errors.hpp"
 #include <glm.hpp>
-#include <iostream>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -51,7 +50,7 @@ private:
 
 class FreeTypeFace {
 public:
-    Character& get_char(char ch);
+    Character& get_char(const char& ch);
 
     FreeTypeFace(FreeTypeFace&& other) :
         _font_path(std::move(other._font_path)),
@@ -60,14 +59,12 @@ public:
         FT_Face ptrTemp = other._native_ft_face;
         other._native_ft_face = nullptr;
         _native_ft_face = ptrTemp;
-        std::cout << "create face " << _native_ft_face << std::endl;
     }
 
     FreeTypeFace& operator=(const FreeTypeFace&) = delete;
 
     ~FreeTypeFace()
     {
-        std::cout << "delete face " << _native_ft_face << std::endl;
         FT_Done_Face(_native_ft_face);
     }
 
@@ -91,7 +88,6 @@ private:
             throw WindowError("ERROR::FREETYPE " + std::to_string(err)
                               + "::Couldn't set pixel size");
         }
-        std::cout << "create face " << _native_ft_face << std::endl;
     }
 
     /// @param `pixel_height` can be ommited, makes it equal to `pixel_width`
@@ -111,7 +107,7 @@ public:
     explicit Font(FreeTypeFace& face) : _face(face) {}
 
     void render_str(const std::string& str, unsigned int vbo, unsigned int x,
-                    unsigned int y, float scale, glm::vec3 color);
+                    unsigned int y, float scale);
 
 private:
     FreeTypeFace& _face;

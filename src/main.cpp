@@ -15,7 +15,6 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-    // glEnable(GL_CULL_FACE);
 
     // vino::FontsCollection fonts_collection; 
     // fonts_collection.add_font("../fonts/ARIAL.ttf");
