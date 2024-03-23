@@ -63,10 +63,7 @@ public:
 
     FreeTypeFace& operator=(const FreeTypeFace&) = delete;
 
-    ~FreeTypeFace()
-    {
-        FT_Done_Face(_native_ft_face);
-    }
+    ~FreeTypeFace() { FT_Done_Face(_native_ft_face); }
 
 private:
     friend class FontsCollection;
@@ -106,8 +103,15 @@ class Font {
 public:
     explicit Font(FreeTypeFace& face) : _face(face) {}
 
-    void render_str(const std::string& str, unsigned int vbo, unsigned int x,
-                    unsigned int y, float scale);
+    void render_str(const std::string& str, unsigned int vbo, glm::uvec2 ll_pos,
+                    float scale) const;
+
+    /// @return how many chars from str was rendered
+    std::size_t render_str_inbound(const std::string& str, unsigned int vbo,
+                              glm::uvec2 ll_pos, float scale,
+                              unsigned int x_bound) const;
+
+    glm::uvec2 get_dimensions_of(const std::string& str, float scale) const;
 
 private:
     FreeTypeFace& _face;

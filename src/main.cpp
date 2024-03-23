@@ -1,9 +1,12 @@
 // #define STB_IMAGE_IMPLEMENTATION
 #include <iostream>
+#include <stdexcept>
 
 #include "Window.hpp"
 #include "MainMenu.hpp"
 #include "TitleScreen.hpp"
+#include "Box.hpp"
+#include "GLFW/glfw3.h"
 
 int main()
 {
@@ -16,18 +19,45 @@ int main()
         return -1;
     }
 
-    // vino::FontsCollection fonts_collection; 
-    // fonts_collection.add_font("../fonts/ARIAL.ttf");
-    // fonts_collection["arial"]; // -> Font
+    try {
+        // vino::FontsCollection fonts_collection;
+        // fonts_collection.add_font("../fonts/ARIAL.ttf");
+        // fonts_collection["arial"]; // -> Font
 
-    // vino::Box main_box();
-    // main_box.render_str(fonts_collection["arial"], {0.0f, 0.0f, 0.5f});
+        // vino::Box main_box();
+        // main_box.render_str(fonts_collection["arial"], {0.0f, 0.0f, 0.5f});
 
-    // show title ViNo for 7s
-    vino::titleScreen(main_window);
+        // show title ViNo for 7s
+        vino::titleScreen(main_window);
 
-    // show main menu
-    vino::mainMenu(main_window);
+        // show main menu
+        vino::mainMenu(main_window);
+
+        throw std::runtime_error("BOM BOM BOM!");
+    } catch (std::exception& ex) {
+        vino::NonResizableWindow err_window(500, 200, "ViNo Error");
+        err_window.make_current();
+
+        vino::LowBox err_box({0, 0}, 500, 200, err_window,
+                             {1.0f, 1.0f, 1.0f, 1.0f});
+
+        vino::FontsCollection fonts;
+        /// TODO: make possible to choose different sizes
+        fonts.add_font_with_ascii("../fonts/ARIAL.ttf", 22);
+        vino::Font arial = fonts["ARIAL"];
+
+        while (!err_window.should_close()) {
+            if (err_window.is_pressed(GLFW_KEY_ESCAPE)) {
+                err_window.close();
+            }
+
+            err_box.render();
+            err_box.render_text("Error: " + std::string(ex.what()), arial,
+                                {0.0f, 0.0f, 0.0f, 1.0f});
+            err_window.swap_buffers();
+            glfwPollEvents();
+        }
+    }
 
     return 0;
 }

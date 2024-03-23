@@ -6,6 +6,9 @@
 
 namespace vino {
 
+// FreeTypeFace ---------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 void FreeTypeFace::set_pixel_size(unsigned int pixel_width,
                                   unsigned int pixel_height)
 {
@@ -65,41 +68,118 @@ Character& FreeTypeFace::get_char(const char& ch)
     return _chars_map[ch];
 }
 
-void Font::render_str(const std::string& str, unsigned int vbo, unsigned int x,
-                      unsigned int y, float scale)
+// Font -----------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+void Font::render_str(const std::string& str, unsigned int vbo,
+                      glm::uvec2 ll_pos, float scale) const
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     for (const char& c : str) {
         Character ch = _face.get_char(c);
 
-        float xpos = x + ch.bearing.x * scale;
-        float ypos = y - (ch.size.y - ch.bearing.y) * scale;
+        float xpos = ll_pos.x + ch.bearing.x * scale;
+        float ypos = ll_pos.y - (ch.size.y - ch.bearing.y) * scale;
 
         float w = ch.size.x * scale;
         float h = ch.size.y * scale;
 
-        float vertices[6][4] = {
-            {xpos, ypos + h, 0.0f, 0.0f},    {xpos, ypos, 0.0f, 1.0f},
-            {xpos + w, ypos, 1.0f, 1.0f},
+        std::array<std::array<float, 4>, 6> vertices = {
+            {{xpos, ypos + h, 0.0f, 0.0f},
+             {xpos, ypos, 0.0f, 1.0f},
+             {xpos + w, ypos, 1.0f, 1.0f},
 
-            {xpos, ypos + h, 0.0f, 0.0f},    {xpos + w, ypos, 1.0f, 1.0f},
-            {xpos + w, ypos + h, 1.0f, 0.0f}};
+             {xpos, ypos + h, 0.0f, 0.0f},
+             {xpos + w, ypos, 1.0f, 1.0f},
+             {xpos + w, ypos + h, 1.0f, 0.0f}}};
 
         // render glyph texture over quad
         glBindTexture(GL_TEXTURE_2D, ch.texture_id);
         // update content of VBO memory
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBufferSubData(
+            GL_ARRAY_BUFFER, 0,
+            sizeof(float) * vertices.size() * vertices.data()->size(),
+            vertices.data());
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // render quad
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        x += (ch.advance >> 6) * scale;
+        ll_pos.x += (ch.advance >> 6) * scale;
     }
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
+
+std::size_t Font::render_str_inbound(const std::string& str, unsigned int vbo,
+                                     glm::uvec2 ll_pos, float scale,
+                                     unsigned int x_bound) const
+{
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    std::size_t count_chars = 0;
+
+    for (const char& c : str) {
+        Character ch = _face.get_char(c);
+
+        float xpos = ll_pos.x + ch.bearing.x * scale;
+        float ypos = ll_pos.y - (ch.size.y - ch.bearing.y) * scale;
+        if (c == '\n' || ll_pos.x + (ch.advance >> 6) * scale >= x_bound) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            return ++count_chars;
+        }
+
+        float w = ch.size.x * scale;
+        float h = ch.size.y * scale;
+
+        std::array<std::array<float, 4>, 6> vertices = {
+            {{xpos, ypos + h, 0.0f, 0.0f},
+             {xpos, ypos, 0.0f, 1.0f},
+             {xpos + w, ypos, 1.0f, 1.0f},
+
+             {xpos, ypos + h, 0.0f, 0.0f},
+             {xpos + w, ypos, 1.0f, 1.0f},
+             {xpos + w, ypos + h, 1.0f, 0.0f}}};
+
+        // render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.texture_id);
+        // update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferSubData(
+            GL_ARRAY_BUFFER, 0,
+            sizeof(float) * vertices.size() * vertices.data()->size(),
+            vertices.data());
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        ll_pos.x += (ch.advance >> 6) * scale;
+        count_chars++;
+    }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+    return count_chars;
+}
+
+glm::uvec2 Font::get_dimensions_of(const std::string& str, float scale) const
+{
+    glm::uvec2 dimensions{};
+
+    for (const char& c : str) {
+        Character ch = _face.get_char(c);
+
+        dimensions.x += (ch.advance >> 6) * scale;
+        if (ch.bearing.y > static_cast<int>(dimensions.y)) {
+            dimensions.y = ch.bearing.y;
+        }
+    }
+
+    return dimensions;
+}
+
+// FontCollection -------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 bool FontsCollection::add_font_with_ascii(const std::string& font_path,
                                           unsigned int       size)

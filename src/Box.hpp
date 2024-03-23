@@ -22,7 +22,7 @@ class TextRenderer;
 class FullscreenTexture;
 class LowBox;
 class Button;
-// class ForegroundFigure;
+class ForegroundFigure;
 
 class IBox {
 public:
@@ -139,8 +139,12 @@ public:
         glDeleteVertexArrays(1, &_text_vertex_array);
     }
 
-    void render_str(const std::string& str, Font& font, glm::vec3 color,
-                    glm::ivec2 ll_pos, const Window& window);
+    void render_text(const std::string& str, const Font& font, glm::vec3 color,
+                     glm::ivec2 ll_pos, const Window& window);
+
+    std::size_t render_text_inbound(const std::string& str, const Font& font,
+                                    glm::vec3 color, glm::ivec2 ll_pos,
+                                    unsigned int x_bound, const Window& window);
 
 private:
     Shader       _text_shader;
@@ -166,11 +170,8 @@ public:
         _text = std::make_unique<TextRenderer>();
     }
 
-    void render_text(std::string text, Font& font, glm::vec4 color)
-    {
-        _text->render_str(text, font, color,
-                          {_ll_pos.x + 10, _ll_pos.y + _height / 2}, _win);
-    }
+    /// Renders text after clearing the box from the previous one
+    void render_text(std::string text, const Font& font, glm::vec4 color);
 
 private:
     std::unique_ptr<TextRenderer> _text{};
@@ -180,7 +181,7 @@ class Button : public IStaticBox {
 public:
     Button(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
            Window& parent_window, glm::vec4 box_color, glm::vec4 title_color,
-           std::string title, Font& font) :
+           std::string title, const Font& font) :
         IStaticBox(low_left_pos, width, height, parent_window, box_color),
         _title(std::move(title)),
         _font(font),
@@ -192,8 +193,8 @@ public:
     void render() override
     {
         IStaticBox::render();
-        _text->render_str(_title, _font, _title_color,
-                          {_ll_pos.x + 10, _ll_pos.y + _height / 2}, _win);
+        _text->render_text(_title, _font, _title_color,
+                           {_ll_pos.x + 10, _ll_pos.y + _height / 2}, _win);
     }
 
 private:

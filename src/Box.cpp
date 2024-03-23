@@ -119,16 +119,16 @@ glm::uvec2 IDynamicBox::move_with_clip(glm::ivec2 direction)
     return result_vec;
 }
 
-glm::uvec2 IDynamicBox::resize_no_clip(glm::uvec2 new_dimension) 
+glm::uvec2 IDynamicBox::resize_no_clip(glm::uvec2 new_dimension)
 {
     _width = new_dimension.x;
     _height = new_dimension.y;
 
-    recalculate_corners();    
-    return new_dimension; 
+    recalculate_corners();
+    return new_dimension;
 }
 
-glm::uvec2 IDynamicBox::resize_with_clip(glm::uvec2 new_dimension) 
+glm::uvec2 IDynamicBox::resize_with_clip(glm::uvec2 new_dimension)
 {
     if (_ll_pos.x + new_dimension.x > _win.get_width()) {
         _width = _win.get_width() - _ll_pos.x;
@@ -191,8 +191,9 @@ void IDynamicBox::render()
 // Text -----------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void TextRenderer::render_str(const std::string& str, Font& font, glm::vec3 color,
-                      glm::ivec2 ll_pos, const Window& window)
+void TextRenderer::render_text(const std::string& str, const Font& font,
+                               glm::vec3 color, glm::ivec2 ll_pos,
+                               const Window& window)
 {
     _text_shader.use();
     glm::mat4 projection =
@@ -208,11 +209,41 @@ void TextRenderer::render_str(const std::string& str, Font& font, glm::vec3 colo
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(_text_vertex_array);
 
-    font.render_str(str, _text_vertex_buffer, ll_pos.x, ll_pos.y, 1.0);
+    font.render_str(str, _text_vertex_buffer, ll_pos, 1.0);
 
     glBindVertexArray(0);
     glDisable(GL_BLEND);
     glDisable(GL_CULL_FACE);
+}
+
+std::size_t TextRenderer::render_text_inbound(const std::string& str,
+                                              const Font& font, glm::vec3 color,
+                                              glm::ivec2    ll_pos,
+                                              unsigned int  x_bound,
+                                              const Window& window)
+{
+    _text_shader.use();
+    glm::mat4 projection =
+        glm::ortho(0.0f, static_cast<float>(window.get_width()), 0.0f,
+                   static_cast<float>(window.get_height()));
+    _text_shader.setMat4FloatV("uProjection", projection);
+    _text_shader.setVec3Float("uTextColor", color.x, color.y, color.z);
+
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(_text_vertex_array);
+
+    std::size_t count_chars =
+        font.render_str_inbound(str, _text_vertex_buffer, ll_pos, 1.0, x_bound);
+
+    glBindVertexArray(0);
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+
+    return count_chars;
 }
 
 TextRenderer::TextRenderer() :
@@ -232,4 +263,23 @@ TextRenderer::TextRenderer() :
     glBindVertexArray(0);
 }
 
+// LowBox ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+void LowBox::render_text(std::string text, const Font& font, glm::vec4 color)
+{
+    const unsigned int y_max_height = font.get_dimensions_of("A", 1.0).y;
+
+    unsigned int y_cur =
+        _ll_pos.y + _height - y_max_height - y_max_height * 4 / 5;
+    std::size_t rendered_chars =
+        _text->render_text_inbound(text, font, color, {_ll_pos.x + 10, y_cur},
+                                   _ll_pos.x + _width - 10, _win);
+    while (rendered_chars < text.size()) {
+        y_cur -= y_max_height + y_max_height * 4 / 5;
+        rendered_chars += _text->render_text_inbound(
+            text.substr(rendered_chars, text.size()), font, color,
+            {_ll_pos.x + 10, y_cur}, _ll_pos.x + _width - 10, _win);
+    }
+}
 }  // namespace vino
