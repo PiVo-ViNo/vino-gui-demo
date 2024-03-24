@@ -17,10 +17,13 @@ class ITextureColorBox;
 class IDynamicBox;
 class IStaticBox;
 
+template <typename _Ch>
 class TextRenderer;
 
 class FullscreenTexture;
+template <typename _Ch>
 class LowBox;
+template <typename _Ch>
 class Button;
 class ForegroundFigure;
 
@@ -129,8 +132,11 @@ private:
     std::array<std::array<int, 3>, 4> _corners;
 };
 
+template <typename _Ch>
 class TextRenderer {
 public:
+    using char_type = _Ch;
+
     TextRenderer();
 
     ~TextRenderer()
@@ -139,10 +145,12 @@ public:
         glDeleteVertexArrays(1, &_text_vertex_array);
     }
 
-    void render_text(const std::u32string& str, const Font<char32_t>& font, glm::vec3 color,
+    void render_text(const std::basic_string<char_type>& str,
+                     const Font<char_type>& font, glm::vec3 color,
                      glm::ivec2 ll_pos, const Window& window);
 
-    std::size_t render_text_inbound(const std::u32string& str, const Font<char32_t>& font,
+    std::size_t render_text_inbound(const std::basic_string<char_type>& str,
+                                    const Font<char_type>&              font,
                                     glm::vec3 color, glm::ivec2 ll_pos,
                                     unsigned int x_bound, const Window& window);
 
@@ -161,33 +169,40 @@ public:
     }
 };
 
+template <typename _Ch>
 class LowBox : public IStaticBox {
 public:
+    using char_type = _Ch;
+
     LowBox(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
            Window& parent_window, glm::vec4 color) :
         IStaticBox(low_left_pos, width, height, parent_window, color)
     {
-        _text = std::make_unique<TextRenderer>();
+        _text = std::make_unique<TextRenderer<char_type>>();
     }
 
     /// Renders text after clearing the box from the previous one
-    void render_text(std::u32string text, const Font<char32_t>& font, glm::vec4 color);
+    void render_text(std::basic_string<char_type> text,
+                     const Font<char_type>& font, glm::vec4 color);
 
 private:
-    std::unique_ptr<TextRenderer> _text{};
+    std::unique_ptr<TextRenderer<char_type>> _text{};
 };
 
+template <typename _Ch>
 class Button : public IStaticBox {
 public:
+    using char_type = _Ch;
+
     Button(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
            Window& parent_window, glm::vec4 box_color, glm::vec4 title_color,
-           std::u32string title, const Font<char32_t>& font) :
+           std::basic_string<char_type> title, const Font<char_type>& font) :
         IStaticBox(low_left_pos, width, height, parent_window, box_color),
         _title(std::move(title)),
         _font(font),
         _title_color(title_color)
     {
-        _text = std::make_unique<TextRenderer>();
+        _text = std::make_unique<TextRenderer<char_type>>();
     }
 
     void render() override
@@ -198,10 +213,10 @@ public:
     }
 
 private:
-    std::u32string                   _title{};
-    Font<char32_t>                          _font;
-    std::unique_ptr<TextRenderer> _text{};
-    glm::vec4                     _title_color;
+    std::basic_string<char_type>             _title{};
+    Font<char_type>                          _font;
+    std::unique_ptr<TextRenderer<char_type>> _text{};
+    glm::vec4                                _title_color;
 };
 
 class ForegroundFigure : public IDynamicBox {

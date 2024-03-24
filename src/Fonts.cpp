@@ -6,7 +6,6 @@
 
 namespace vino {
 
-
 // FreeTypeFace ---------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -62,10 +61,9 @@ void FreeTypeFace<_Ch>::load_symbol(_Ch ch, bool in_cycle)
 template <typename _Ch>
 void FreeTypeFace<_Ch>::load_ascii()
 {
-    for (_Ch ch = 0; ch < 128; ch++) {
+    for (_Ch ch = 0; ch < 127; ch++) {
         load_symbol(ch, true);
     }
-    load_symbol(U'œ');
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -173,12 +171,12 @@ std::size_t Font<_Ch>::render_str_inbound(const std::basic_string<_Ch>& str,
 }
 
 template <typename _Ch>
-glm::uvec2 Font<_Ch>::get_dimensions_of(const std::basic_string<_Ch>& str,
-                                        float scale) const
+glm::uvec2 Font<_Ch>::get_dimensions_of(const std::string& str,
+                                        float              scale) const
 {
     glm::uvec2 dimensions{};
 
-    for (const _Ch& c : str) {
+    for (const char& c : str) {
         Character ch = _face.get_char(c);
 
         dimensions.x += (ch.advance >> 6) * scale;
@@ -194,8 +192,8 @@ glm::uvec2 Font<_Ch>::get_dimensions_of(const std::basic_string<_Ch>& str,
 // ----------------------------------------------------------------------------
 
 template <typename _Ch>
-bool FontsCollection<_Ch>::add_font_with_ascii(
-    const std::string& font_path, unsigned int size)
+bool FontsCollection<_Ch>::add_font_with_ascii(const std::string& font_path,
+                                               unsigned int       size)
 {
     std::filesystem::path temp_path = std::filesystem::path(font_path);
     if (!std::filesystem::exists(temp_path) || temp_path.extension() != ".ttf")
@@ -210,8 +208,6 @@ bool FontsCollection<_Ch>::add_font_with_ascii(
     if (!pair_it.second) {
         return false;
     }
-    // FreeTypeFace& face = pair_it.first->second;
-    // face.load_ascii();
     pair_it.first->second.load_ascii();
     return true;
 }
@@ -231,9 +227,9 @@ template class FreeTypeLib<char>;
 template class FreeTypeLib<char16_t>;
 template class FreeTypeLib<char32_t>;
 
-template class FreeTypeFace<char>; 
-template class FreeTypeFace<char16_t>; 
-template class FreeTypeFace<char32_t>; 
+template class FreeTypeFace<char>;
+template class FreeTypeFace<char16_t>;
+template class FreeTypeFace<char32_t>;
 
 template class Font<char>;
 template class Font<char16_t>;

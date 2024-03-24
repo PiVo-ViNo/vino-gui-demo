@@ -38,21 +38,19 @@ int main()
         vino::NonResizableWindow err_window(500, 200, "ViNo Error");
         err_window.make_current();
 
-        vino::LowBox err_box({0, 0}, 500, 200, err_window,
+        vino::LowBox<char> err_box({0, 0}, 500, 200, err_window,
                              {1.0f, 1.0f, 1.0f, 1.0f});
 
-        vino::FontsCollection<char32_t> fonts;
+        vino::FontsCollection<char> fonts;
         /// TODO: make possible to choose different sizes
         fonts.add_font_with_ascii("../fonts/ARIAL.ttf", 22);
-        vino::Font arial = fonts["ARIAL"];
-
         while (!err_window.should_close()) {
             if (err_window.is_pressed(GLFW_KEY_ESCAPE)) {
                 err_window.close();
             }
 
             err_box.render();
-            err_box.render_text(U"Error: " + std::u32string(reinterpret_cast<const char32_t*>(ex.what())), arial,
+            err_box.render_text("Error: " + std::string(ex.what()), fonts["ARIAL"],
                                 {0.0f, 0.0f, 0.0f, 1.0f});
             err_window.swap_buffers();
             glfwPollEvents();

@@ -122,7 +122,7 @@ public:
                                    glm::uvec2 ll_pos, float scale,
                                    unsigned int x_bound) const;
 
-    glm::uvec2 get_dimensions_of(const std::basic_string<char_type>& str, float scale) const;
+    glm::uvec2 get_dimensions_of(const std::string& str, float scale) const;
 
 private:
     FreeTypeFace<char_type>& _face;

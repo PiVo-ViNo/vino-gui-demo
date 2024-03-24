@@ -21,14 +21,14 @@ void mainMenu(Window& window)
 
     FullscreenTexture fs_texture(window, {1.0f, 1.0f, 1.0f, 1.0f});
 
-    LowBox main_box({10, 10}, window.get_width() - 20, 300, window,
+    LowBox<char32_t> main_box({10, 10}, window.get_width() - 20, 300, window,
                     {1.0f, 0.1f, 1.0f, 1.0f});
 
     FontsCollection<char32_t> fonts;
     /// TODO: make possible to choose different sizes
     fonts.add_font_with_ascii("../fonts/ARIALBI.ttf", 22);
     // Font   arial = fonts["ARIAL"];
-    Button main_button({10, 310}, 100, 50, window, {1.0f, 1.0f, 0.0f, 1.0f},
+    Button<char32_t> main_button({10, 310}, 100, 50, window, {1.0f, 1.0f, 0.0f, 1.0f},
                        {0.0f, 0.0f, 0.0f, 1.0f}, U"Olegus", fonts["ARIALBI"]);
 
     ForegroundFigure olegus({100, 50}, 300, 500, window,

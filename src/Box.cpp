@@ -192,9 +192,11 @@ void IDynamicBox::render()
 // Text -----------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void TextRenderer::render_text(const std::u32string& str, const Font<char32_t>& font,
-                               glm::vec3 color, glm::ivec2 ll_pos,
-                               const Window& window)
+template <typename _Ch>
+void TextRenderer<_Ch>::render_text(const std::basic_string<_Ch>& str,
+                                    const Font<_Ch>&              font,
+                                    glm::vec3 color, glm::ivec2 ll_pos,
+                                    const Window& window)
 {
     _text_shader.use();
     glm::mat4 projection =
@@ -217,11 +219,10 @@ void TextRenderer::render_text(const std::u32string& str, const Font<char32_t>& 
     glDisable(GL_CULL_FACE);
 }
 
-std::size_t TextRenderer::render_text_inbound(const std::u32string& str,
-                                              const Font<char32_t>& font, glm::vec3 color,
-                                              glm::ivec2    ll_pos,
-                                              unsigned int  x_bound,
-                                              const Window& window)
+template <typename _Ch>
+std::size_t TextRenderer<_Ch>::render_text_inbound(
+    const std::basic_string<_Ch>& str, const Font<_Ch>& font, glm::vec3 color,
+    glm::ivec2 ll_pos, unsigned int x_bound, const Window& window)
 {
     _text_shader.use();
     glm::mat4 projection =
@@ -247,7 +248,8 @@ std::size_t TextRenderer::render_text_inbound(const std::u32string& str,
     return count_chars;
 }
 
-TextRenderer::TextRenderer() :
+template <typename _Ch>
+TextRenderer<_Ch>::TextRenderer() :
     _text_shader("../shaders/charVertex.glsl", "../shaders/charFrag.glsl")
 {
     glGenBuffers(1, &_text_vertex_buffer);
@@ -267,9 +269,11 @@ TextRenderer::TextRenderer() :
 // LowBox ---------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void LowBox::render_text(std::u32string text, const Font<char32_t>& font, glm::vec4 color)
+template <typename _Ch>
+void LowBox<_Ch>::render_text(std::basic_string<_Ch> text, const Font<_Ch>& font,
+                         glm::vec4 color)
 {
-    const unsigned int y_max_height = font.get_dimensions_of(U"A", 1.0).y;
+    const unsigned int y_max_height = font.get_dimensions_of("A", 1.0).y;
 
     unsigned int y_cur =
         _ll_pos.y + _height - y_max_height - y_max_height * 4 / 5;
@@ -283,4 +287,14 @@ void LowBox::render_text(std::u32string text, const Font<char32_t>& font, glm::v
             {_ll_pos.x + 10, y_cur}, _ll_pos.x + _width - 10, _win);
     }
 }
+
+// explicit instantations
+template class TextRenderer<char>;
+template class TextRenderer<char16_t>;
+template class TextRenderer<char32_t>;
+
+template class LowBox<char>;
+template class LowBox<char16_t>;
+template class LowBox<char32_t>;
+
 }  // namespace vino
