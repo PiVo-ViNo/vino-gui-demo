@@ -22,7 +22,7 @@ void FreeTypeFace<_Ch>::set_pixel_size(unsigned int pixel_width,
 }
 
 template <typename _Ch>
-void FreeTypeFace<_Ch>::load_symbol(_Ch ch, bool in_cycle)
+Character& FreeTypeFace<_Ch>::load_symbol(_Ch ch, bool in_cycle)
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     // Load character glyph in render mode
@@ -51,11 +51,12 @@ void FreeTypeFace<_Ch>::load_symbol(_Ch ch, bool in_cycle)
         glm::ivec2(_native_ft_face->glyph->bitmap_left,
                    _native_ft_face->glyph->bitmap_top),
         static_cast<unsigned int>(_native_ft_face->glyph->advance.x)};
-    _chars_map.insert(std::pair<_Ch, Character>(ch, character));
+    auto it = _chars_map.insert(std::pair<_Ch, Character>(ch, character)).first;
     if (!in_cycle) {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    return it->second;
 }
 
 template <typename _Ch>
@@ -70,7 +71,11 @@ void FreeTypeFace<_Ch>::load_ascii()
 template <typename _Ch>
 Character& FreeTypeFace<_Ch>::get_char(const _Ch& ch)
 {
-    return _chars_map[ch];
+    auto it = _chars_map.find(ch);
+    if (it == _chars_map.end()) {
+        return load_symbol(ch);
+    }
+    return it->second;
 }
 
 // Font -----------------------------------------------------------------------

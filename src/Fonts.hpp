@@ -98,8 +98,8 @@ private:
     /// @param `pixel_height` can be ommited, makes it equal to `pixel_width`
     void set_pixel_size(unsigned int pixel_width,
                         unsigned int pixel_height = 0);
-    /// TODO: Make support for every UTF-8 symbol
-    void load_symbol(char_type ch, bool in_cycle = false);
+
+    Character& load_symbol(char_type ch, bool in_cycle = false);
     void load_ascii();
 
     std::string                    _font_path{};

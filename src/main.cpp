@@ -33,7 +33,7 @@ int main()
         // show main menu
         vino::mainMenu(main_window);
 
-        throw std::runtime_error("BOM BOM BOM!");
+        throw std::runtime_error("ОЛЕГУС BOM BOM BOM!");
     } catch (std::exception& ex) {
         vino::NonResizableWindow err_window(500, 200, "ViNo Error");
         err_window.make_current();

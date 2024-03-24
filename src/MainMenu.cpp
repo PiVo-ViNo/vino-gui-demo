@@ -39,7 +39,7 @@ void mainMenu(Window& window)
     std::deque<const std::u32string> texts;
 
     texts.emplace_back(
-        U"œ\n"
+        U"œОЛЕГУС БОМ БОМ БОМ\n"
         "Where œmerge Aragva and her twin, \n"
         "Kura, and fast rush onward, in \n"
         "Times past, a lonely cloister stood; \n"
