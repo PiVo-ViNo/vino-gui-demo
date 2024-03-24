@@ -139,10 +139,10 @@ public:
         glDeleteVertexArrays(1, &_text_vertex_array);
     }
 
-    void render_text(const std::string& str, const Font& font, glm::vec3 color,
+    void render_text(const std::u32string& str, const Font<char32_t>& font, glm::vec3 color,
                      glm::ivec2 ll_pos, const Window& window);
 
-    std::size_t render_text_inbound(const std::string& str, const Font& font,
+    std::size_t render_text_inbound(const std::u32string& str, const Font<char32_t>& font,
                                     glm::vec3 color, glm::ivec2 ll_pos,
                                     unsigned int x_bound, const Window& window);
 
@@ -171,7 +171,7 @@ public:
     }
 
     /// Renders text after clearing the box from the previous one
-    void render_text(std::string text, const Font& font, glm::vec4 color);
+    void render_text(std::u32string text, const Font<char32_t>& font, glm::vec4 color);
 
 private:
     std::unique_ptr<TextRenderer> _text{};
@@ -181,7 +181,7 @@ class Button : public IStaticBox {
 public:
     Button(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
            Window& parent_window, glm::vec4 box_color, glm::vec4 title_color,
-           std::string title, const Font& font) :
+           std::u32string title, const Font<char32_t>& font) :
         IStaticBox(low_left_pos, width, height, parent_window, box_color),
         _title(std::move(title)),
         _font(font),
@@ -198,8 +198,8 @@ public:
     }
 
 private:
-    std::string                   _title{};
-    Font                          _font;
+    std::u32string                   _title{};
+    Font<char32_t>                          _font;
     std::unique_ptr<TextRenderer> _text{};
     glm::vec4                     _title_color;
 };

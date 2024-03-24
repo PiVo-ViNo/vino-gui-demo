@@ -10,9 +10,13 @@
 namespace vino {
 
 struct Character;
+template <typename _Ch>
 class FreeTypeLib;
+template <typename _Ch>
 class FreeTypeFace;
+template <typename _Ch>
 class Font;
+template <typename _Ch>
 class FontsCollection;
 
 struct Character {
@@ -22,9 +26,10 @@ struct Character {
     unsigned int advance;     // Offset to advance to next glyph
 };
 
+template <typename _Ch>
 class FreeTypeLib {
 public:
-    friend class FontsCollection;
+    friend class FontsCollection<_Ch>;
 
     FreeTypeLib()
     {
@@ -48,9 +53,12 @@ private:
     FT_Library _native_ft_lib{};
 };
 
+template <typename _Ch>
 class FreeTypeFace {
 public:
-    Character& get_char(const char& ch);
+    using char_type = _Ch;
+
+    Character& get_char(const char_type& ch);
 
     FreeTypeFace(FreeTypeFace&& other) :
         _font_path(std::move(other._font_path)),
@@ -66,7 +74,7 @@ public:
     ~FreeTypeFace() { FT_Done_Face(_native_ft_face); }
 
 private:
-    friend class FontsCollection;
+    friend class FontsCollection<char_type>;
 
     FreeTypeFace(FT_Library& ft_lib, std::string font_path,
                  unsigned int pxl_size) :
@@ -91,45 +99,52 @@ private:
     void set_pixel_size(unsigned int pixel_width,
                         unsigned int pixel_height = 0);
     /// TODO: Make support for every UTF-8 symbol
-    void load_symbol(unsigned char ch, bool in_cycle = false);
+    void load_symbol(char_type ch, bool in_cycle = false);
     void load_ascii();
 
-    std::string               _font_path{};
-    FT_Face                   _native_ft_face{};
-    std::map<char, Character> _chars_map{};
+    std::string                    _font_path{};
+    FT_Face                        _native_ft_face{};
+    std::map<char_type, Character> _chars_map{};
 };
 
+template <typename _Ch>
 class Font {
 public:
-    explicit Font(FreeTypeFace& face) : _face(face) {}
+    using char_type = _Ch;
 
-    void render_str(const std::string& str, unsigned int vbo, glm::uvec2 ll_pos,
+    explicit Font(FreeTypeFace<char_type>& face) : _face(face) {}
+
+    void render_str(const std::basic_string<char_type>& str, unsigned int vbo, glm::uvec2 ll_pos,
                     float scale) const;
 
     /// @return how many chars from str was rendered
-    std::size_t render_str_inbound(const std::string& str, unsigned int vbo,
-                              glm::uvec2 ll_pos, float scale,
-                              unsigned int x_bound) const;
+    std::size_t render_str_inbound(const std::basic_string<char_type>& str, unsigned int vbo,
+                                   glm::uvec2 ll_pos, float scale,
+                                   unsigned int x_bound) const;
 
-    glm::uvec2 get_dimensions_of(const std::string& str, float scale) const;
+    glm::uvec2 get_dimensions_of(const std::basic_string<char_type>& str, float scale) const;
 
 private:
-    FreeTypeFace& _face;
+    FreeTypeFace<char_type>& _face;
 };
 
+template <typename _Ch>
 class FontsCollection {
 public:
+    using char_type = _Ch;
+
+    FontsCollection<char_type>() = default;
     // explicit FontCollection(FreeTypeLib& ft_lib) : _ft_lib(ft_lib) {}
 
     bool add_font(const std::string& font_path, unsigned int size);
     bool add_font_with_ascii(const std::string& font_path, unsigned int size);
 
-    Font operator[](const std::string& font_name);
+    Font<char_type> operator[](const std::string& font_name);
 
 private:
-    FreeTypeLib _ft_lib{};
-    /// TODO: write hash(FreeTypeFace), so std::set can be used
-    std::map<std::string, FreeTypeFace> _faces{};
+    FreeTypeLib<char_type> _ft_lib{};
+    /// Map of `font name` -> FreeTypeFace
+    std::map<std::string, FreeTypeFace<char_type>> _faces{};
 };
 
 }  // namespace vino

@@ -1,4 +1,5 @@
 #include "Box.hpp"
+#include <string>
 
 namespace vino {
 
@@ -191,7 +192,7 @@ void IDynamicBox::render()
 // Text -----------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void TextRenderer::render_text(const std::string& str, const Font& font,
+void TextRenderer::render_text(const std::u32string& str, const Font<char32_t>& font,
                                glm::vec3 color, glm::ivec2 ll_pos,
                                const Window& window)
 {
@@ -216,8 +217,8 @@ void TextRenderer::render_text(const std::string& str, const Font& font,
     glDisable(GL_CULL_FACE);
 }
 
-std::size_t TextRenderer::render_text_inbound(const std::string& str,
-                                              const Font& font, glm::vec3 color,
+std::size_t TextRenderer::render_text_inbound(const std::u32string& str,
+                                              const Font<char32_t>& font, glm::vec3 color,
                                               glm::ivec2    ll_pos,
                                               unsigned int  x_bound,
                                               const Window& window)
@@ -266,9 +267,9 @@ TextRenderer::TextRenderer() :
 // LowBox ---------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void LowBox::render_text(std::string text, const Font& font, glm::vec4 color)
+void LowBox::render_text(std::u32string text, const Font<char32_t>& font, glm::vec4 color)
 {
-    const unsigned int y_max_height = font.get_dimensions_of("A", 1.0).y;
+    const unsigned int y_max_height = font.get_dimensions_of(U"A", 1.0).y;
 
     unsigned int y_cur =
         _ll_pos.y + _height - y_max_height - y_max_height * 4 / 5;

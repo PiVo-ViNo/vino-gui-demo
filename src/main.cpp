@@ -41,7 +41,7 @@ int main()
         vino::LowBox err_box({0, 0}, 500, 200, err_window,
                              {1.0f, 1.0f, 1.0f, 1.0f});
 
-        vino::FontsCollection fonts;
+        vino::FontsCollection<char32_t> fonts;
         /// TODO: make possible to choose different sizes
         fonts.add_font_with_ascii("../fonts/ARIAL.ttf", 22);
         vino::Font arial = fonts["ARIAL"];
@@ -52,7 +52,7 @@ int main()
             }
 
             err_box.render();
-            err_box.render_text("Error: " + std::string(ex.what()), arial,
+            err_box.render_text(U"Error: " + std::u32string(reinterpret_cast<const char32_t*>(ex.what())), arial,
                                 {0.0f, 0.0f, 0.0f, 1.0f});
             err_window.swap_buffers();
             glfwPollEvents();

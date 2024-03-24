@@ -2,15 +2,17 @@
 
 #include <glad/glad.h>
 #include <filesystem>
-#include "freetype/fttypes.h"
+#include <iostream>
 
 namespace vino {
+
 
 // FreeTypeFace ---------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void FreeTypeFace::set_pixel_size(unsigned int pixel_width,
-                                  unsigned int pixel_height)
+template <typename _Ch>
+void FreeTypeFace<_Ch>::set_pixel_size(unsigned int pixel_width,
+                                       unsigned int pixel_height)
 {
     if (FT_Error err =
             FT_Set_Pixel_Sizes(_native_ft_face, pixel_width, pixel_height))
@@ -20,7 +22,8 @@ void FreeTypeFace::set_pixel_size(unsigned int pixel_width,
     }
 }
 
-void FreeTypeFace::load_symbol(unsigned char ch, bool in_cycle)
+template <typename _Ch>
+void FreeTypeFace<_Ch>::load_symbol(_Ch ch, bool in_cycle)
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     // Load character glyph in render mode
@@ -28,6 +31,7 @@ void FreeTypeFace::load_symbol(unsigned char ch, bool in_cycle)
         throw WindowError("ERROR::FREETYPE " + std::to_string(err)
                           + "::Failed to load Glyph");
     }
+    // std::cout << ch << " ";
     // generate texture
     unsigned int texture;
     glGenTextures(1, &texture);
@@ -48,22 +52,25 @@ void FreeTypeFace::load_symbol(unsigned char ch, bool in_cycle)
         glm::ivec2(_native_ft_face->glyph->bitmap_left,
                    _native_ft_face->glyph->bitmap_top),
         static_cast<unsigned int>(_native_ft_face->glyph->advance.x)};
-    _chars_map.insert(std::pair<char, Character>(ch, character));
+    _chars_map.insert(std::pair<_Ch, Character>(ch, character));
     if (!in_cycle) {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
 
-void FreeTypeFace::load_ascii()
+template <typename _Ch>
+void FreeTypeFace<_Ch>::load_ascii()
 {
-    for (unsigned char ch = 0; ch < 128; ch++) {
+    for (_Ch ch = 0; ch < 128; ch++) {
         load_symbol(ch, true);
     }
+    load_symbol(U'œ');
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Character& FreeTypeFace::get_char(const char& ch)
+template <typename _Ch>
+Character& FreeTypeFace<_Ch>::get_char(const _Ch& ch)
 {
     return _chars_map[ch];
 }
@@ -71,12 +78,13 @@ Character& FreeTypeFace::get_char(const char& ch)
 // Font -----------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void Font::render_str(const std::string& str, unsigned int vbo,
-                      glm::uvec2 ll_pos, float scale) const
+template <typename _Ch>
+void Font<_Ch>::render_str(const std::basic_string<_Ch>& str, unsigned int vbo,
+                           glm::uvec2 ll_pos, float scale) const
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    for (const char& c : str) {
+    for (const _Ch& c : str) {
         Character ch = _face.get_char(c);
 
         float xpos = ll_pos.x + ch.bearing.x * scale;
@@ -112,14 +120,16 @@ void Font::render_str(const std::string& str, unsigned int vbo,
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
 
-std::size_t Font::render_str_inbound(const std::string& str, unsigned int vbo,
-                                     glm::uvec2 ll_pos, float scale,
-                                     unsigned int x_bound) const
+template <typename _Ch>
+std::size_t Font<_Ch>::render_str_inbound(const std::basic_string<_Ch>& str,
+                                          unsigned int vbo, glm::uvec2 ll_pos,
+                                          float        scale,
+                                          unsigned int x_bound) const
 {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     std::size_t count_chars = 0;
 
-    for (const char& c : str) {
+    for (const _Ch& c : str) {
         Character ch = _face.get_char(c);
 
         float xpos = ll_pos.x + ch.bearing.x * scale;
@@ -162,11 +172,13 @@ std::size_t Font::render_str_inbound(const std::string& str, unsigned int vbo,
     return count_chars;
 }
 
-glm::uvec2 Font::get_dimensions_of(const std::string& str, float scale) const
+template <typename _Ch>
+glm::uvec2 Font<_Ch>::get_dimensions_of(const std::basic_string<_Ch>& str,
+                                        float scale) const
 {
     glm::uvec2 dimensions{};
 
-    for (const char& c : str) {
+    for (const _Ch& c : str) {
         Character ch = _face.get_char(c);
 
         dimensions.x += (ch.advance >> 6) * scale;
@@ -181,8 +193,9 @@ glm::uvec2 Font::get_dimensions_of(const std::string& str, float scale) const
 // FontCollection -------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-bool FontsCollection::add_font_with_ascii(const std::string& font_path,
-                                          unsigned int       size)
+template <typename _Ch>
+bool FontsCollection<_Ch>::add_font_with_ascii(
+    const std::string& font_path, unsigned int size)
 {
     std::filesystem::path temp_path = std::filesystem::path(font_path);
     if (!std::filesystem::exists(temp_path) || temp_path.extension() != ".ttf")
@@ -193,7 +206,7 @@ bool FontsCollection::add_font_with_ascii(const std::string& font_path,
     std::string font_name = temp_path.stem().string();
 
     auto pair_it = _faces.emplace(
-        font_name, FreeTypeFace(_ft_lib._native_ft_lib, font_path, size));
+        font_name, FreeTypeFace<_Ch>(_ft_lib._native_ft_lib, font_path, size));
     if (!pair_it.second) {
         return false;
     }
@@ -203,13 +216,30 @@ bool FontsCollection::add_font_with_ascii(const std::string& font_path,
     return true;
 }
 
-Font FontsCollection::operator[](const std::string& font_name)
+template <typename _Ch>
+Font<_Ch> FontsCollection<_Ch>::operator[](const std::string& font_name)
 {
     auto it = _faces.find(font_name);
     if (it == _faces.end()) {
         throw WindowError("No font with name \"" + font_name + "\" found");
     }
-    return Font(it->second);
+    return Font<_Ch>(it->second);
 }
 
+// explicit instantations
+template class FreeTypeLib<char>;
+template class FreeTypeLib<char16_t>;
+template class FreeTypeLib<char32_t>;
+
+template class FreeTypeFace<char>; 
+template class FreeTypeFace<char16_t>; 
+template class FreeTypeFace<char32_t>; 
+
+template class Font<char>;
+template class Font<char16_t>;
+template class Font<char32_t>;
+
+template class FontsCollection<char>;
+template class FontsCollection<char16_t>;
+template class FontsCollection<char32_t>;
 }  // namespace vino
