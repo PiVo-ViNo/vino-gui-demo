@@ -90,6 +90,7 @@ private:
                               + "::Couldn't init FreeTypeFace");
         }
         if (FT_Error err = FT_Set_Pixel_Sizes(_native_ft_face, 0, pxl_size)) {
+            FT_Done_Face(_native_ft_face);
             throw WindowError("ERROR::FREETYPE " + std::to_string(err)
                               + "::Couldn't set pixel size");
         }
