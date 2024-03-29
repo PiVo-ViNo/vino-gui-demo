@@ -1,5 +1,6 @@
 #include "Window.hpp"
 #include <GLFW/glfw3.h>
+#include <cmath>
 
 namespace vino {
 

@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <filesystem>
+#include <array>
 #include <iostream>
 
 namespace vino {

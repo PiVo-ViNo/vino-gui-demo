@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ImgData.hpp"
 #include "Shader.hpp"
 #include "Window.hpp"
 #include "Fonts.hpp"
@@ -22,7 +23,7 @@ class TextRenderer;
 
 class FullscreenTexture;
 template <typename _Ch>
-class LowBox;
+class StaticTextBox;
 template <typename _Ch>
 class Button;
 class ForegroundFigure;
@@ -74,45 +75,42 @@ public:
         glDeleteVertexArrays(1, &_box_vertex_array);
         glDeleteBuffers(1, &_box_vertex_buffer);
         glDeleteBuffers(1, &_box_element_buffer);
+        glDeleteTextures(1, &_box_texture);
     }
 
-    virtual void render() = 0;
+    /// Render without setting alpha uniform value in shader (== -1.0f)
+    virtual void render();
+    virtual void render(float uniform_alpha);
 
 protected:
     ITextureColorBox(glm::ivec2 low_left_pos, unsigned int width,
                      unsigned int height, Window& parent_window,
-                     glm::vec4 color) :
-        IBox(low_left_pos, width, height, parent_window),
-        _box_shader("../shaders/boxVertex.glsl", "../shaders/colorFrag.glsl"),
-        _color(color)
-    {
-        glGenBuffers(1, &_box_vertex_buffer);
-        glGenVertexArrays(1, &_box_vertex_array);
-        glGenBuffers(1, &_box_element_buffer);
-    }
+                     const ImgData& img, glm::vec4 color, int GL_TYPE_DRAW);
 
     Shader       _box_shader;
     glm::vec4    _color;
     unsigned int _box_vertex_buffer{};
     unsigned int _box_vertex_array{};
     unsigned int _box_element_buffer{};
+    unsigned int _box_texture{};
 };
 
 class IStaticBox : public ITextureColorBox {
 public:
-    void render() override;
-
 protected:
+    // This way, because both ImgData and Color shouldn't be ommited at once
     IStaticBox(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
-               Window& parent_window, glm::vec4 color);
+               Window& parent_window, glm::vec4 color, const ImgData& img = {});
+
+    IStaticBox(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
+               Window& parent_window, const ImgData& img,
+               glm::vec4 color = {1.0, 1.0, 1.0, 1.0});
 };
 
 class IDynamicBox : public ITextureColorBox,
                     public IMovable,
                     public IResizable {
 public:
-    void render() override;
-
     glm::ivec2 move_no_clip(glm::ivec2 direction) override;
 
     glm::uvec2 move_with_clip(glm::ivec2 direction) override;
@@ -123,13 +121,17 @@ public:
 
 protected:
     IDynamicBox(glm::ivec2 low_left_pos, unsigned int width,
-                unsigned int height, Window& parent_window, glm::vec4 color);
+                unsigned int height, Window& parent_window, glm::vec4 color,
+                const ImgData& img);
+
+    IDynamicBox(glm::ivec2 low_left_pos, unsigned int width,
+                unsigned int height, Window& parent_window, const ImgData& img,
+                glm::vec4 color = {1.0, 1.0, 1.0, 1.0});
 
 private:
     void recalculate_corners();
 
-    const std::size_t                 k_size_of_corners = 12 * sizeof(int);
-    std::array<std::array<int, 3>, 4> _corners;
+    std::array<std::array<int, 5>, 4> _corners;
 };
 
 template <typename _Ch>
@@ -162,21 +164,39 @@ private:
 
 class FullscreenTexture : public IStaticBox {
 public:
-    FullscreenTexture(Window& window, glm::vec4 color) :
-        IStaticBox({0, 0}, window.get_width(), window.get_height(), window,
+    FullscreenTexture(Window& window, glm::vec4 color,
+                      const ImgData& img = {}) :
+        IStaticBox({0, 0}, window.get_width(), window.get_height(), window, img,
+                   color)
+    {
+    }
+
+    FullscreenTexture(Window& window, const ImgData& img,
+                      glm::vec4 color = {1.0, 1.0, 1.0, 1.0}) :
+        IStaticBox({0, 0}, window.get_width(), window.get_height(), window, img,
                    color)
     {
     }
 };
 
 template <typename _Ch>
-class LowBox : public IStaticBox {
+class StaticTextBox : public IStaticBox {
 public:
     using char_type = _Ch;
 
-    LowBox(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
-           Window& parent_window, glm::vec4 color) :
-        IStaticBox(low_left_pos, width, height, parent_window, color)
+    StaticTextBox(glm::ivec2 low_left_pos, unsigned int width,
+                  unsigned int height, Window& parent_window, glm::vec4 color,
+                  const ImgData& img = {}) :
+        IStaticBox(low_left_pos, width, height, parent_window, img, color)
+    {
+        _text = std::make_unique<TextRenderer<char_type>>();
+    }
+
+    StaticTextBox(glm::ivec2 low_left_pos, unsigned int width,
+                  unsigned int height, Window& parent_window,
+                  const ImgData& img = {},
+                  glm::vec4      color = {1.0, 1.0, 1.0, 1.0}) :
+        IStaticBox(low_left_pos, width, height, parent_window, img, color)
     {
         _text = std::make_unique<TextRenderer<char_type>>();
     }
@@ -195,9 +215,11 @@ public:
     using char_type = _Ch;
 
     Button(glm::ivec2 low_left_pos, unsigned int width, unsigned int height,
-           Window& parent_window, glm::vec4 box_color, glm::vec4 title_color,
-           std::basic_string<char_type> title, const Font<char_type>& font) :
-        IStaticBox(low_left_pos, width, height, parent_window, box_color),
+           Window& parent_window, glm::vec4 title_color,
+           std::basic_string<char_type> title, const Font<char_type>& font,
+           const ImgData& img = {},
+           glm::vec4      box_color = {1.0, 1.0, 1.0, 1.0}) :
+        IStaticBox(low_left_pos, width, height, parent_window, img, box_color),
         _title(std::move(title)),
         _font(font),
         _title_color(title_color)
@@ -223,10 +245,20 @@ class ForegroundFigure : public IDynamicBox {
 public:
     ForegroundFigure(glm::ivec2 low_left_pos, unsigned int width,
                      unsigned int height, Window& parent_window,
-                     glm::vec4 color) :
-        IDynamicBox(low_left_pos, width, height, parent_window, color)
+                     const ImgData& img,
+                     glm::vec4      color = {1.0, 1.0, 1.0, 1.0}) :
+        IDynamicBox(low_left_pos, width, height, parent_window, img, color)
     {
     }
 };
+
+// class LowBox {
+// public:
+// LowBox()
+//
+// private:
+// StaticTextBox<char32_t> _text_box;
+// Button<char32_t> _name;
+// };
 
 }  // namespace vino

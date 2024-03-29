@@ -20,13 +20,6 @@ int main()
     }
 
     try {
-        // vino::FontsCollection fonts_collection;
-        // fonts_collection.add_font("../fonts/ARIAL.ttf");
-        // fonts_collection["arial"]; // -> Font
-
-        // vino::Box main_box();
-        // main_box.render_str(fonts_collection["arial"], {0.0f, 0.0f, 0.5f});
-
         // show title ViNo for 7s
         vino::titleScreen(main_window);
 
@@ -35,10 +28,11 @@ int main()
 
         throw std::runtime_error("ОЛЕГУС BOM BOM BOM!");
     } catch (std::exception& ex) {
+        std::cout << ex.what() << std::endl;
         vino::NonResizableWindow err_window(500, 200, "ViNo Error");
         err_window.make_current();
 
-        vino::LowBox<char> err_box({0, 0}, 500, 200, err_window,
+        vino::StaticTextBox<char> err_box({0, 0}, 500, 200, err_window,
                              {1.0f, 1.0f, 1.0f, 1.0f});
 
         vino::FontsCollection<char> fonts;

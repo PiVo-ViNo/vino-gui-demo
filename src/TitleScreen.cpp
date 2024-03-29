@@ -1,28 +1,17 @@
 #include "TitleScreen.hpp"
 
-#include <GLFW/glfw3.h>
-
+#include "Box.hpp"
 #include "ImgData.hpp"
-#include "ScreenTexture.hpp"
-#include "Shader.hpp"
+#include <GLFW/glfw3.h>
 
 namespace vino {
 
-constexpr double k_pi = 3.14159265358979323846;
-
 void titleScreen(vino::Window& window)
 {
-    ScreenTexture title_scr_tex;
-
-    Shader title_shader("../shaders/basicVertex.glsl",
-                        "../shaders/basicFrag.glsl");
-
     // load .png, generate it
     ImgData img("../title_screen.png");
 
-    unsigned int texture0 = configureTexture(img, 0);
-    title_shader.use();
-    title_shader.setInt("uTexture", 0);
+    FullscreenTexture title_tex(window, img);
 
     glfwSetTime(0.0);
 
@@ -31,13 +20,13 @@ void titleScreen(vino::Window& window)
         if (time > 6.0 || window.is_pressed(GLFW_KEY_SPACE)) {
             return;
         }
-        float  alpha = -((time - 2.5) / 2.5) * ((time - 2.5) / 2.5) + 1;
-        title_shader.setFloat("ufAlpha", alpha);
+        float alpha = -((time - 2.5) / 2.5) * ((time - 2.5) / 2.5) + 1;
 
-        title_scr_tex.render(title_shader, texture0);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse
-        // moved etc.)
+        title_tex.render(alpha);
+
         window.swap_buffers();
         glfwPollEvents();
     }

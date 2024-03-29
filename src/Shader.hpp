@@ -26,6 +26,8 @@ public:
     void setInt(const std::string& name, int value) const;
     void setFloat(const std::string& name, float value) const;
     void setVec3Float(const std::string& name, float, float, float) const;
+    void setVec4Float(const std::string& name, float, float, float,
+                      float) const;
     void setMat4FloatV(const std::string& name, const glm::mat4& mat) const;
 
     unsigned int get_id() { return id; }
@@ -42,7 +44,7 @@ inline Shader::~Shader()
 
 inline Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
-    // 1. retrieve the vertex/fragment source code from filePath
+    // retrieve the vertex/fragment source code from filePath
     std::string   vertex_code;
     std::string   fragment_code;
     std::ifstream v_shader_file;
@@ -148,6 +150,12 @@ inline void Shader::setVec3Float(const std::string& name, float x, float y,
                                  float z) const
 {
     glUniform3f(glGetUniformLocation(id, name.c_str()), x, y, z);
+}
+
+inline void Shader::setVec4Float(const std::string& name, float x, float y,
+                                 float z, float w) const
+{
+    glUniform4f(glGetUniformLocation(id, name.c_str()), x, y, z, w);
 }
 
 inline void Shader::setMat4FloatV(const std::string& name,

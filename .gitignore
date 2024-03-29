@@ -4,3 +4,4 @@ build/
 compile_commands.json
 _deps_src
 out/
+src/ft_test.cpp
