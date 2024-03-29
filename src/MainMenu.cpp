@@ -22,25 +22,22 @@ void mainMenu(Window& window)
     ImgData           fs_img("../olegus.png");
     FullscreenTexture fs_texture(window, fs_img);
 
-    ImgData                 box_img("../low_box.png");
-    StaticTextBox<char32_t> main_box({10, 10}, window.get_width() - 20,
-                                     window.get_height() / 3, window, box_img,
-                                     {0.0f, 0.0f, 0.0f, 1.0f});
-
     FontsCollection<char32_t> fonts;
     /// TODO: make possible to choose different sizes
     fonts.add_font_with_ascii("../fonts/ARIALBI.ttf",
                               22 * window.get_width() / 800);
+    fonts.add_font_with_ascii("../fonts/ARIALBD.ttf",
+                              22 * window.get_width() / 800);
     // Font   arial = fonts["ARIAL"];
-    ImgData          but("../but.png");
-    Button<char32_t> main_button({10, window.get_height() / 3 + 10}, 100, 50,
-                                 window, {1.0f, 1.0f, 0.0f, 1.0f}, U"Олегус",
-                                 fonts["ARIALBI"], {}, {0.5, 0.3, 0.0, 1.0});
+    Button<char32_t> exit_button({10, window.get_height() - 60}, 100, 50,
+                                 window, {1.0f, 1.0f, 1.0f, 0.8f}, U"Exit",
+                                 fonts["ARIALBD"], {}, {0.2, 0.2, 0.2, 0.8});
+    LowBox<char32_t> low_box(window, {10, 10},
+                             {window.get_width() - 20, window.get_height() / 3},
+                             fonts["ARIALBI"]);
 
     ImgData          rin("../rin.png");
     ForegroundFigure olegus({100, 50}, 300, 500, window, rin);
-
-    // olegus.move_with_clip({300, 0});
 
     std::deque<std::u32string> texts;
 
@@ -71,10 +68,11 @@ void mainMenu(Window& window)
 
     std::size_t cur_text = 0;
 
+    /// TODO: Don't use glfw time, it could be zeroed anywhere, use std::chrono
     glfwSetTime(0);
 
     while (!window.should_close()) {
-        if (window.is_pressed(GLFW_KEY_ESCAPE)) {
+        if (exit_button.is_clicked()) {
             window.close();
         }
         if (glfwGetTime() >= 0.5 && window.is_pressed(GLFW_KEY_SPACE)) {
@@ -86,17 +84,11 @@ void mainMenu(Window& window)
         glClearColor(0.2f, 0.7f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        ///Q: Must auto sort rendering be made?
         fs_texture.render();
         olegus.render();
-        if (main_box.is_clicked()) {
-            main_box.render();
-        } else {
-            main_box.render();
-        }
-        main_button.render();
-
-        main_box.render_text(texts[cur_text], fonts["ARIALBI"],
-                             {1.0f, 1.0f, 1.0f, 1.0f});
+        low_box.render(U"Олегус", texts[cur_text]);
+        exit_button.render();
 
         window.swap_buffers();
         glfwPollEvents();

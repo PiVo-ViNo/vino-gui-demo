@@ -23,6 +23,21 @@ bool IBox::is_clicked() const
     return is_cursor_in() && _win.is_clicked();
 }
 
+glm::ivec2 IBox::get_low_left_pos() const
+{
+    return _ll_pos;
+}
+
+unsigned int IBox::get_width() const
+{
+    return _width;
+}
+
+unsigned int IBox::get_height() const
+{
+    return _height;
+}
+
 // ITextureColorBox -----------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -101,6 +116,11 @@ void ITextureColorBox::render(float uniform_alpha)
 
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+glm::vec4 ITextureColorBox::get_color() const
+{
+    return _color;
 }
 
 // IStaticBox -----------------------------------------------------------------
@@ -309,19 +329,78 @@ template <typename _Ch>
 void StaticTextBox<_Ch>::render_text(std::basic_string<_Ch> text,
                                      const Font<_Ch>& font, glm::vec4 color)
 {
-    const unsigned int y_max_height = font.get_dimensions_of("A", 1.0).y;
+    const int glyph_max_height = font.get_dimensions_of("A", 1.0).y;
 
-    unsigned int y_cur =
-        _ll_pos.y + _height - y_max_height - y_max_height * 4 / 5;
+    int y_cur = std::max(
+        _ll_pos.y + static_cast<int>(_height) - glyph_max_height
+            - glyph_max_height * 4 / 5,
+        _ll_pos.y + (static_cast<int>(_height) - glyph_max_height) / 2);
+
     std::size_t rendered_chars =
         _text->render_text_inbound(text, font, color, {_ll_pos.x + 10, y_cur},
                                    _ll_pos.x + _width - 10, _win);
     while (rendered_chars < text.size()) {
-        y_cur -= y_max_height + y_max_height * 4 / 5;
+        y_cur -= glyph_max_height + glyph_max_height * 4 / 5;
         rendered_chars += _text->render_text_inbound(
             text.substr(rendered_chars, text.size()), font, color,
             {_ll_pos.x + 10, y_cur}, _ll_pos.x + _width - 10, _win);
     }
+}
+
+// LowBox ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+template <typename _Ch>
+LowBox<_Ch>::LowBox(Window& parent_window, glm::ivec2 box_ll_pos,
+                    glm::uvec2 box_dimensions, const Font<_Ch>& font) :
+    _text_box(box_ll_pos, box_dimensions.x, box_dimensions.y, parent_window,
+              {0.9, 0.9, 0.9, 0.8}),
+    _name_box({box_ll_pos.x + 10, box_dimensions.y + box_ll_pos.y},
+              box_dimensions.x / 4, font.get_dimensions_of("A", 1.0).y * 2,
+              parent_window, {1.0, 1.0, 1.0, 1.0}),
+    _font(font)
+{
+    glob_box_ll_pos = box_ll_pos;
+    glob_box_dimensions = box_dimensions;
+    glob_title_ll_pos = _name_box.get_low_left_pos();
+    glob_title_dimensions = {_name_box.get_width(), _name_box.get_height()};
+    glob_box_color = _text_box.get_color();
+    globals_set = true;
+}
+
+/// TODO: Text must be rendered without breaking the words (exception: too long
+/// words, for now just break them in place)
+template <typename _Ch>
+void LowBox<_Ch>::render()
+{
+    _text_box.render();
+    _name_box.render();
+    _text_box.render_text(_text, _font,
+                          {1.0 - glob_box_color.r, 1.0 - glob_box_color.g,
+                           1.0 - glob_box_color.b, 1.0});
+}
+
+template <typename _Ch>
+void LowBox<_Ch>::render(const std::basic_string<_Ch>& name,
+                         const std::basic_string<_Ch>& text)
+{
+    update_text(text);
+    _text_box.render();
+    _name_box.render();
+    // Render texts colors as inverted to boxes's colors
+    _text_box.render_text(_text, _font,
+                          {1.0 - glob_box_color.r, 1.0 - glob_box_color.g,
+                           1.0 - glob_box_color.b, 1.0});
+    _name_box.render_text(
+        name, _font,
+        {1.0 - _name_box.get_color().r, 1.0 - _name_box.get_color().g,
+         1.0 - _name_box.get_color().b, 1.0});
+}
+
+template <typename _Ch>
+void LowBox<_Ch>::update_text(const std::basic_string<char_type>& text)
+{
+    _text = text;
 }
 
 // explicit instantations
@@ -333,4 +412,7 @@ template class StaticTextBox<char>;
 template class StaticTextBox<char16_t>;
 template class StaticTextBox<char32_t>;
 
+template class LowBox<char>;
+template class LowBox<char16_t>;
+template class LowBox<char32_t>;
 }  // namespace vino

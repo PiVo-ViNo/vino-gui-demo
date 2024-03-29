@@ -1,22 +1,23 @@
-// #define STB_IMAGE_IMPLEMENTATION
-#include <iostream>
-#include <stdexcept>
-
 #include "Window.hpp"
 #include "MainMenu.hpp"
 #include "TitleScreen.hpp"
 #include "Box.hpp"
+#include "custom_errors.hpp"
 #include "GLFW/glfw3.h"
+
+#include <iostream>
+#include <stdexcept>
+#include <filesystem>
 
 int main()
 {
+    std::cout << std::filesystem::current_path() << std::endl;
     vino::NonResizableWindow main_window(800, 600, "ViNo");
     main_window.make_current();
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
+        throw vino::WindowError("Failed to initialize GLAD"); 
     }
 
     try {
