@@ -4,18 +4,69 @@
 #include <filesystem>
 #include <array>
 #include <iostream>
+#include "freetype/freetype.h"
 
 namespace vino {
+
+// FreeTypeLib ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+template <typename _Ch>
+FreeTypeLib<_Ch>::FreeTypeLib(FreeTypeLib&& other)
+{
+    _native_ft_lib = other._native_ft_lib;
+    other._native_ft_lib = nullptr;
+}
+
+template <typename _Ch>
+FreeTypeLib<_Ch>& FreeTypeLib<_Ch>::operator=(FreeTypeLib<_Ch>&& other)
+{
+    FT_Library ptrTemp = other._native_ft_lib;
+    other._native_ft_lib = this->_native_ft_lib;
+    _native_ft_lib = ptrTemp;
+    return *this;
+}
 
 // FreeTypeFace ---------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
 template <typename _Ch>
-void FreeTypeFace<_Ch>::set_pixel_size(unsigned int pixel_width,
-                                       unsigned int pixel_height)
+FreeTypeFace<_Ch>::FreeTypeFace(FreeTypeFace&& other) :
+    _font_path(std::move(other._font_path)),
+    _chars_map(std::move(other._chars_map))
 {
-    if (FT_Error err =
-            FT_Set_Pixel_Sizes(_native_ft_face, pixel_width, pixel_height))
+    FT_Face ptrTemp = other._native_ft_face;
+    other._native_ft_face = nullptr;
+    _native_ft_face = ptrTemp;
+}
+
+template <typename _Ch>
+FreeTypeFace<_Ch>::FreeTypeFace(
+        FT_Library& ft_lib, std::string font_path, unsigned int pxl_size) :
+    _font_path(std::move(font_path))
+{
+    if (_font_path.empty()) {
+        throw WindowError("ERROR::FREETYPE::Empty path to font");
+    }
+    if (FT_Error err = FT_New_Face(
+                ft_lib, _font_path.c_str(), 0, &_native_ft_face))
+    {
+        throw WindowError("ERROR::FREETYPE " + std::to_string(err)
+                          + "::Couldn't init FreeTypeFace");
+    }
+    if (FT_Error err = FT_Set_Pixel_Sizes(_native_ft_face, 0, pxl_size)) {
+        FT_Done_Face(_native_ft_face);
+        throw WindowError("ERROR::FREETYPE " + std::to_string(err)
+                          + "::Couldn't set pixel size");
+    }
+}
+
+template <typename _Ch>
+void FreeTypeFace<_Ch>::set_pixel_size(
+        unsigned int pixel_width, unsigned int pixel_height)
+{
+    if (FT_Error err = FT_Set_Pixel_Sizes(
+                _native_ft_face, pixel_width, pixel_height))
     {
         throw WindowError("ERROR::FREETYPE " + std::to_string(err)
                           + "::Couldn't set pixel size");
@@ -37,21 +88,20 @@ Character& FreeTypeFace<_Ch>::load_symbol(_Ch ch, bool in_cycle)
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _native_ft_face->glyph->bitmap.width,
-                 _native_ft_face->glyph->bitmap.rows, 0, GL_RED,
-                 GL_UNSIGNED_BYTE, _native_ft_face->glyph->bitmap.buffer);
+            _native_ft_face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE,
+            _native_ft_face->glyph->bitmap.buffer);
     // set texture options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // now store character for later use
-    Character character = {
-        texture,
-        glm::ivec2(_native_ft_face->glyph->bitmap.width,
-                   _native_ft_face->glyph->bitmap.rows),
-        glm::ivec2(_native_ft_face->glyph->bitmap_left,
-                   _native_ft_face->glyph->bitmap_top),
-        static_cast<unsigned int>(_native_ft_face->glyph->advance.x)};
+    Character character = {texture,
+            glm::ivec2(_native_ft_face->glyph->bitmap.width,
+                    _native_ft_face->glyph->bitmap.rows),
+            glm::ivec2(_native_ft_face->glyph->bitmap_left,
+                    _native_ft_face->glyph->bitmap_top),
+            static_cast<unsigned int>(_native_ft_face->glyph->advance.x)};
     auto it = _chars_map.insert(std::pair<_Ch, Character>(ch, character)).first;
     if (!in_cycle) {
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -84,8 +134,11 @@ Character& FreeTypeFace<_Ch>::get_char(const _Ch& ch)
 
 template <typename _Ch>
 void Font<_Ch>::render_str(const std::basic_string<_Ch>& str, unsigned int vbo,
-                           glm::uvec2 ll_pos, float scale) const
+        glm::uvec2 ll_pos, float scale) const
 {
+    if (str.empty()) {
+        return;
+    }
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     for (const _Ch& c : str) {
@@ -97,23 +150,20 @@ void Font<_Ch>::render_str(const std::basic_string<_Ch>& str, unsigned int vbo,
         float w = ch.size.x * scale;
         float h = ch.size.y * scale;
 
-        std::array<std::array<float, 4>, 6> vertices = {
-            {{xpos, ypos + h, 0.0f, 0.0f},
-             {xpos, ypos, 0.0f, 1.0f},
-             {xpos + w, ypos, 1.0f, 1.0f},
+        std::array<std::array<float, 4>, 6> vertices = {{{xpos, ypos + h, 0.0f,
+                                                                 0.0f},
+                {xpos, ypos, 0.0f, 1.0f}, {xpos + w, ypos, 1.0f, 1.0f},
 
-             {xpos, ypos + h, 0.0f, 0.0f},
-             {xpos + w, ypos, 1.0f, 1.0f},
-             {xpos + w, ypos + h, 1.0f, 0.0f}}};
+                {xpos, ypos + h, 0.0f, 0.0f}, {xpos + w, ypos, 1.0f, 1.0f},
+                {xpos + w, ypos + h, 1.0f, 0.0f}}};
 
         // render glyph texture over quad
         glBindTexture(GL_TEXTURE_2D, ch.texture_id);
         // update content of VBO memory
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(
-            GL_ARRAY_BUFFER, 0,
-            sizeof(float) * vertices.size() * vertices.data()->size(),
-            vertices.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                sizeof(float) * vertices.size() * vertices.data()->size(),
+                vertices.data());
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // render quad
@@ -126,10 +176,12 @@ void Font<_Ch>::render_str(const std::basic_string<_Ch>& str, unsigned int vbo,
 
 template <typename _Ch>
 std::size_t Font<_Ch>::render_str_inbound(const std::basic_string<_Ch>& str,
-                                          unsigned int vbo, glm::uvec2 ll_pos,
-                                          float        scale,
-                                          unsigned int x_bound) const
+        unsigned int vbo, glm::uvec2 ll_pos, float scale,
+        unsigned int x_bound) const
 {
+    if (str.empty()) {
+        return 0;
+    }
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     std::size_t count_chars = 0;
 
@@ -146,23 +198,20 @@ std::size_t Font<_Ch>::render_str_inbound(const std::basic_string<_Ch>& str,
         float w = ch.size.x * scale;
         float h = ch.size.y * scale;
 
-        std::array<std::array<float, 4>, 6> vertices = {
-            {{xpos, ypos + h, 0.0f, 0.0f},
-             {xpos, ypos, 0.0f, 1.0f},
-             {xpos + w, ypos, 1.0f, 1.0f},
+        std::array<std::array<float, 4>, 6> vertices = {{{xpos, ypos + h, 0.0f,
+                                                                 0.0f},
+                {xpos, ypos, 0.0f, 1.0f}, {xpos + w, ypos, 1.0f, 1.0f},
 
-             {xpos, ypos + h, 0.0f, 0.0f},
-             {xpos + w, ypos, 1.0f, 1.0f},
-             {xpos + w, ypos + h, 1.0f, 0.0f}}};
+                {xpos, ypos + h, 0.0f, 0.0f}, {xpos + w, ypos, 1.0f, 1.0f},
+                {xpos + w, ypos + h, 1.0f, 0.0f}}};
 
         // render glyph texture over quad
         glBindTexture(GL_TEXTURE_2D, ch.texture_id);
         // update content of VBO memory
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(
-            GL_ARRAY_BUFFER, 0,
-            sizeof(float) * vertices.size() * vertices.data()->size(),
-            vertices.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                sizeof(float) * vertices.size() * vertices.data()->size(),
+                vertices.data());
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // render quad
@@ -177,8 +226,8 @@ std::size_t Font<_Ch>::render_str_inbound(const std::basic_string<_Ch>& str,
 }
 
 template <typename _Ch>
-glm::uvec2 Font<_Ch>::get_dimensions_of(const std::string& str,
-                                        float              scale) const
+glm::uvec2 Font<_Ch>::get_dimensions_of(
+        const std::string& str, float scale) const
 {
     glm::uvec2 dimensions{};
 
@@ -198,8 +247,8 @@ glm::uvec2 Font<_Ch>::get_dimensions_of(const std::string& str,
 // ----------------------------------------------------------------------------
 
 template <typename _Ch>
-bool FontsCollection<_Ch>::add_font_with_ascii(const std::string& font_path,
-                                               unsigned int       size)
+bool FontsCollection<_Ch>::add_font_with_ascii(
+        const std::string& font_path, unsigned int size)
 {
     std::filesystem::path temp_path = std::filesystem::path(font_path);
     if (!std::filesystem::exists(temp_path) || temp_path.extension() != ".ttf")
@@ -209,8 +258,8 @@ bool FontsCollection<_Ch>::add_font_with_ascii(const std::string& font_path,
     }
     std::string font_name = temp_path.stem().string();
 
-    auto pair_it = _faces.emplace(
-        font_name, FreeTypeFace<_Ch>(_ft_lib._native_ft_lib, font_path, size));
+    auto pair_it = _faces.emplace(font_name,
+            FreeTypeFace<_Ch>(_ft_lib._native_ft_lib, font_path, size));
     if (!pair_it.second) {
         return false;
     }

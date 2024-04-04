@@ -57,4 +57,16 @@ uint32_t Window::get_height() const
     return _height;
 }
 
+NonResizableWindow::NonResizableWindow(
+        uint32_t width, uint32_t height, const std::string& title) :
+    Window(width, height)
+{
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    ptrWindow =
+            glfwCreateWindow(_width, _height, title.c_str(), nullptr, nullptr);
+    if (ptrWindow == nullptr) {
+        glfwTerminate();
+        throw vino::WindowError("Window wasn't successfully initialized");
+    }
+}
 }  // namespace vino

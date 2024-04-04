@@ -33,8 +33,8 @@ public:
     [[nodiscard]] bool is_clicked() const;
 
     [[nodiscard]] std::pair<int, int> get_cursor_pos() const;
-    [[nodiscard]] uint32_t get_width() const;
-    [[nodiscard]] uint32_t get_height() const;
+    [[nodiscard]] uint32_t            get_width() const;
+    [[nodiscard]] uint32_t            get_height() const;
 
 protected:
     Window(uint32_t width, uint32_t height) : _width(width), _height(height)
@@ -53,18 +53,8 @@ protected:
 
 class NonResizableWindow : public Window {
 public:
-    NonResizableWindow(uint32_t width, uint32_t height,
-                       const std::string& title) :
-        Window(width, height)
-    {
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        ptrWindow =
-            glfwCreateWindow(_width, _height, title.c_str(), nullptr, nullptr);
-        if (ptrWindow == nullptr) {
-            glfwTerminate();
-            throw vino::WindowError("Window wasn't successfully initialized");
-        }
-    }
+    NonResizableWindow(
+            uint32_t width, uint32_t height, const std::string& title);
 
     ~NonResizableWindow() override = default;
 

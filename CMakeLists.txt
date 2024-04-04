@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 project(vino_gui VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_LINKER lld-link)
 
 set(DEPS_SRC "${CMAKE_SOURCE_DIR}/_deps_src")
 include(FetchContent)
@@ -23,7 +24,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glm ft2 glfw)
  
 add_compile_options(-Wall -Wextra -gdwarf-4)
- 
+
 add_executable(vino_gui 
     src/main.cpp 
     src/glad.c 
@@ -34,7 +35,7 @@ add_executable(vino_gui
     src/Fonts.cpp
     src/Box.cpp
 )
- 
+add_link_options(-Wl,"/entry:mainCRTStartup /subsystem:windows")
 target_include_directories(vino_gui
     PUBLIC "${CMAKE_SOURCE_DIR}/include"
     PUBLIC "${DEPS_SRC}/ft2/include"

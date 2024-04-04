@@ -26,6 +26,9 @@ struct Character {
     unsigned int advance;     // Offset to advance to next glyph
 };
 
+/**
+ @brief Wrapper around FT_Library, not for right ahead usage
+*/
 template <typename _Ch>
 class FreeTypeLib {
 public:
@@ -42,17 +45,19 @@ public:
 
     ~FreeTypeLib() { FT_Done_FreeType(_native_ft_lib); }
 
-    /// Q: FT_Library isn't something global, there could be many of them,
-    /// so we could move them?
+    FreeTypeLib(FreeTypeLib&&);
+    FreeTypeLib& operator=(FreeTypeLib&& other);
+
     FreeTypeLib(const FreeTypeLib&) = delete;
-    FreeTypeLib(FreeTypeLib&&) = delete;
     FreeTypeLib& operator=(const FreeTypeLib&) = delete;
-    FreeTypeLib& operator=(FreeTypeLib&& other) = delete;
 
 private:
     FT_Library _native_ft_lib{};
 };
 
+/**
+ @brief Wrapper around FT_Face, not for right ahead usage
+*/
 template <typename _Ch>
 class FreeTypeFace {
 public:
@@ -60,14 +65,7 @@ public:
 
     Character& get_char(const char_type& ch);
 
-    FreeTypeFace(FreeTypeFace&& other) :
-        _font_path(std::move(other._font_path)),
-        _chars_map(std::move(other._chars_map))
-    {
-        FT_Face ptrTemp = other._native_ft_face;
-        other._native_ft_face = nullptr;
-        _native_ft_face = ptrTemp;
-    }
+    FreeTypeFace(FreeTypeFace&& other);
 
     FreeTypeFace& operator=(const FreeTypeFace&) = delete;
 
@@ -76,32 +74,15 @@ public:
 private:
     friend class FontsCollection<char_type>;
 
-    FreeTypeFace(FT_Library& ft_lib, std::string font_path,
-                 unsigned int pxl_size) :
-        _font_path(std::move(font_path))
-    {
-        if (_font_path.empty()) {
-            throw WindowError("ERROR::FREETYPE::Empty path to font");
-        }
-        if (FT_Error err =
-                FT_New_Face(ft_lib, _font_path.c_str(), 0, &_native_ft_face))
-        {
-            throw WindowError("ERROR::FREETYPE " + std::to_string(err)
-                              + "::Couldn't init FreeTypeFace");
-        }
-        if (FT_Error err = FT_Set_Pixel_Sizes(_native_ft_face, 0, pxl_size)) {
-            FT_Done_Face(_native_ft_face);
-            throw WindowError("ERROR::FREETYPE " + std::to_string(err)
-                              + "::Couldn't set pixel size");
-        }
-    }
+    FreeTypeFace(
+        FT_Library& ft_lib, std::string font_path, unsigned int pxl_size);
 
     /// @param `pixel_height` can be ommited, makes it equal to `pixel_width`
-    void set_pixel_size(unsigned int pixel_width,
-                        unsigned int pixel_height = 0);
+    void set_pixel_size(
+        unsigned int pixel_width, unsigned int pixel_height = 0);
 
     Character& load_symbol(char_type ch, bool in_cycle = false);
-    void load_ascii();
+    void       load_ascii();
 
     std::string                    _font_path{};
     FT_Face                        _native_ft_face{};
@@ -115,15 +96,16 @@ public:
 
     explicit Font(FreeTypeFace<char_type>& face) : _face(face) {}
 
-    void render_str(const std::basic_string<char_type>& str, unsigned int vbo, glm::uvec2 ll_pos,
-                    float scale) const;
+    void render_str(const std::basic_string<char_type>& str, unsigned int vbo,
+        glm::uvec2 ll_pos, float scale) const;
 
     /// @return how many chars from str was rendered
-    std::size_t render_str_inbound(const std::basic_string<char_type>& str, unsigned int vbo,
-                                   glm::uvec2 ll_pos, float scale,
-                                   unsigned int x_bound) const;
+    std::size_t render_str_inbound(const std::basic_string<char_type>& str,
+        unsigned int vbo, glm::uvec2 ll_pos, float scale,
+        unsigned int x_bound) const;
 
-    glm::uvec2 get_dimensions_of(const std::string& str, float scale) const;
+    [[nodiscard]] glm::uvec2 get_dimensions_of(
+        const std::string& str, float scale) const;
 
 private:
     FreeTypeFace<char_type>& _face;
