@@ -9,15 +9,15 @@
 #include <stdexcept>
 #include <filesystem>
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
+// #ifdef _WIN32
+// #include <Windows.h>
+// #endif
 
-int main()
+int WinMain()
 {
-    #ifdef _WIN32
-    FreeConsole();
-    #endif
+    // #ifdef _WIN32
+    // FreeConsole();
+    // #endif
     // std::cout << std::filesystem::current_path() << std::endl;
     vino::NonResizableWindow main_window(800, 600, "ViNo");
     main_window.make_current();
@@ -45,7 +45,7 @@ int main()
 
         vino::FontsCollection<char> fonts;
         /// TODO: make possible to choose different sizes
-        fonts.add_font_with_ascii("../fonts/ARIAL.ttf", 22);
+        fonts.add_font_with_ascii("fonts/ARIAL.ttf", 22);
         while (!err_window.should_close()) {
             if (err_window.is_pressed(GLFW_KEY_ESCAPE)) {
                 err_window.close();

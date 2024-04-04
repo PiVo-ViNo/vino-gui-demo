@@ -3,6 +3,11 @@ project(ViNo_gui VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_LINKER lld-link)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/runtime")
+
+if(CMAKE_BUILD_TYPE EQUAL Release)
+    set(BUILD_SHARED_LIBS ON)
+endif()
 
 set(DEPS_SRC "${CMAKE_SOURCE_DIR}/_deps_src")
 include(FetchContent)
@@ -23,13 +28,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm ft2 glfw)
  
-add_compile_options(-O2 -Wall -Wextra -gdwarf-4)
+add_compile_options(-Wall -Wextra -gdwarf-4)
+if(CMAKE_BUILD_TYPE EQUAL Release)
+    add_compile_options(-O2)
+else ()
+    add_compile_options(-g)
+endif()
 
 # ---- Additional cmake function to add target definitions ----
 include(cmake/add_default_target_compile_definitions.cmake)
 
 # Object Library
-add_library(vinogui STATIC 
+add_library(vinogui SHARED 
     src/glad.c 
     src/Window.cpp
     src/ImgData.cpp
@@ -50,7 +60,7 @@ target_link_libraries(vinogui
     PUBLIC freetype
 )
 # Executable
-add_executable(ViNo_gui_exe 
+add_executable(ViNo_gui_exe WIN32
     src/main.cpp
     src/TitleScreen.cpp
     src/MainMenu.cpp

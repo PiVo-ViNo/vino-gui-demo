@@ -52,7 +52,7 @@ ITextureColorBox::ITextureColorBox(glm::ivec2 low_left_pos, unsigned int width,
         unsigned int height, Window& parent_window, const ImgData& img,
         glm::vec4 color, int GL_TYPE_DRAW) :
     IBox(low_left_pos, width, height, parent_window),
-    _box_shader("../shaders/basicVertex.glsl", "../shaders/basicFrag.glsl"),
+    _box_shader("./shaders/basicVertex.glsl", "shaders/basicFrag.glsl"),
     _color(color)
 {
     if (GL_TYPE_DRAW != GL_STATIC_DRAW && GL_TYPE_DRAW != GL_DYNAMIC_DRAW) {
@@ -327,7 +327,7 @@ std::size_t TextRenderer<_Ch>::render_text_inbound(
 
 template <typename _Ch>
 TextRenderer<_Ch>::TextRenderer() :
-    _text_shader("../shaders/charVertex.glsl", "../shaders/charFrag.glsl")
+    _text_shader("shaders/charVertex.glsl", "shaders/charFrag.glsl")
 {
     glGenBuffers(1, &_text_vertex_buffer);
     glGenVertexArrays(1, &_text_vertex_array);

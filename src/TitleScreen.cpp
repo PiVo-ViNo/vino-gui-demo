@@ -9,7 +9,7 @@ namespace vino {
 void titleScreen(vino::Window& window)
 {
     // load .png, generate it
-    ImgData img("../title_screen.png");
+    ImgData img("res/title_screen.png");
 
     FullscreenTexture title_tex(window, img);
 

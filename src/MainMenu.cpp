@@ -14,19 +14,19 @@ namespace vino {
 
 void mainMenu(Window& window)
 {
-    Shader menu_shader("../shaders/basicVertex.glsl",
-                       "../shaders/basicFrag.glsl");
+    Shader menu_shader("shaders/basicVertex.glsl",
+                       "shaders/basicFrag.glsl");
     menu_shader.use();
     menu_shader.setInt("uTexture", 0);
 
-    ImgData           fs_img("../olegus.png");
+    ImgData           fs_img("res/olegus.png");
     FullscreenTexture fs_texture(window, fs_img);
 
     FontsCollection<char32_t> fonts;
     /// TODO: make possible to choose different sizes
-    fonts.add_font_with_ascii("../fonts/ARIALBI.ttf",
+    fonts.add_font_with_ascii("fonts/ARIALBI.ttf",
                               22 * window.get_width() / 800);
-    fonts.add_font_with_ascii("../fonts/ARIALBD.ttf",
+    fonts.add_font_with_ascii("fonts/ARIALBD.ttf",
                               22 * window.get_width() / 800);
     // Font   arial = fonts["ARIAL"];
     Button<char32_t> exit_button({10, window.get_height() - 60}, 100, 50,
@@ -36,7 +36,7 @@ void mainMenu(Window& window)
                              {window.get_width() - 20, window.get_height() / 3},
                              fonts["ARIALBI"]);
 
-    ImgData          rin("../rin.png");
+    ImgData          rin("res/rin.png");
     ForegroundFigure olegus({100, 50}, 300, 500, window, rin);
 
     std::deque<std::u32string> texts;
