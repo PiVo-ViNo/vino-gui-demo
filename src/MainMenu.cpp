@@ -1,9 +1,8 @@
 #include "MainMenu.hpp"
 
-// #include "ImgData.hpp"
-// #include "ScreenTexture.hpp"
-#include "Fonts.hpp"
 #include "Box.hpp"
+#include "Fonts.hpp"
+#include "ImgData.hpp"
 #include "Shader.hpp"
 
 #include <GLFW/glfw3.h>

@@ -9,17 +9,14 @@
 #include <stdexcept>
 #include <filesystem>
 
-// #ifdef _WIN32
-// #include <Windows.h>
-// #endif
-
+#ifdef _WIN32
 int WinMain()
+#else
+int main()
+#endif
 {
-    // #ifdef _WIN32
-    // FreeConsole();
-    // #endif
     // std::cout << std::filesystem::current_path() << std::endl;
-    vino::NonResizableWindow main_window(800, 600, "ViNo");
+    vino::NonResizableWindow main_window(1920, 1080, "ViNo");
     main_window.make_current();
 
     // glad: load all OpenGL function pointers

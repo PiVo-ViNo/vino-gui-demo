@@ -4,6 +4,15 @@
 
 namespace vino {
 
+Window::Window(uint32_t width, uint32_t height) : _width(width), _height(height)
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+}
+
 void Window::make_current()
 {
     glfwMakeContextCurrent(ptrWindow);
@@ -69,4 +78,5 @@ NonResizableWindow::NonResizableWindow(
         throw vino::WindowError("Window wasn't successfully initialized");
     }
 }
+
 }  // namespace vino

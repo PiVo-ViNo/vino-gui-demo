@@ -96,12 +96,12 @@ ITextureColorBox::ITextureColorBox(glm::ivec2 low_left_pos, unsigned int width,
     glBindVertexArray(0);
 }
 
-void ITextureColorBox::render()
+void ITextureColorBox::render() const
 {
     ITextureColorBox::render(-1.0f);
 }
 
-void ITextureColorBox::render(float uniform_alpha)
+void ITextureColorBox::render(float uniform_alpha) const
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -266,7 +266,7 @@ IDynamicBox::IDynamicBox(glm::ivec2 low_left_pos, unsigned int width,
 template <typename _Ch>
 void TextRenderer<_Ch>::render_text(const std::basic_string<_Ch>& str,
         const Font<_Ch>& font, glm::vec3 color, glm::ivec2 ll_pos,
-        const Window& window)
+        const Window& window) const
 {
     if (str.empty()) {
         return;
@@ -296,7 +296,7 @@ template <typename _Ch>
 std::size_t TextRenderer<_Ch>::render_text_inbound(
         const std::basic_string<_Ch>& str, const Font<_Ch>& font,
         glm::vec3 color, glm::ivec2 ll_pos, unsigned int x_bound,
-        const Window& window)
+        const Window& window) const
 {
     if (str.empty()) {
         return 0;
@@ -354,8 +354,26 @@ TextRenderer<_Ch>::~TextRenderer()
 // ----------------------------------------------------------------------------
 
 template <typename _Ch>
-void StaticTextBox<_Ch>::render_text(
-        std::basic_string<_Ch> text, const Font<_Ch>& font, glm::vec4 color)
+StaticTextBox<_Ch>::StaticTextBox(glm::ivec2 low_left_pos, unsigned int width,
+        unsigned int height, Window& parent_window, glm::vec4 color,
+        const ImgData& img) :
+    IStaticBox(low_left_pos, width, height, parent_window, img, color)
+{
+    _text = std::make_unique<TextRenderer<char_type>>();
+}
+
+template <typename _Ch>
+StaticTextBox<_Ch>::StaticTextBox(glm::ivec2 low_left_pos, unsigned int width,
+        unsigned int height, Window& parent_window, const ImgData& img,
+        glm::vec4 color) :
+    IStaticBox(low_left_pos, width, height, parent_window, img, color)
+{
+    _text = std::make_unique<TextRenderer<char_type>>();
+}
+
+template <typename _Ch>
+void StaticTextBox<_Ch>::render_text(std::basic_string<_Ch> text,
+        const Font<_Ch>& font, glm::vec4 color) const
 {
     const int glyph_max_height = font.get_dimensions_of("A", 1.0).y;
 
@@ -371,6 +389,33 @@ void StaticTextBox<_Ch>::render_text(
                 text.substr(rendered_chars, text.size()), font, color,
                 {_ll_pos.x + 10, y_cur}, _ll_pos.x + _width - 10, _win);
     }
+}
+
+// ForegroundFigure -----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+ForegroundFigure::ForegroundFigure(glm::ivec2 low_left_pos, unsigned int width,
+        unsigned int height, Window& parent_window, const ImgData& img,
+        glm::vec4 color) :
+    IDynamicBox(low_left_pos, width, height, parent_window, img, color)
+{
+}
+
+// FullscreenTexture ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+FullscreenTexture::FullscreenTexture(
+        Window& window, const ImgData& img, glm::vec4 color) :
+    IStaticBox(
+            {0, 0}, window.get_width(), window.get_height(), window, img, color)
+{
+}
+
+FullscreenTexture::FullscreenTexture(
+        Window& window, glm::vec4 color, const ImgData& img) :
+    IStaticBox(
+            {0, 0}, window.get_width(), window.get_height(), window, img, color)
+{
 }
 
 // Button ---------------------------------------------------------------------
@@ -390,7 +435,7 @@ Button<_Ch>::Button(glm::ivec2 low_left_pos, unsigned int width,
 }
 
 template <typename _Ch>
-void Button<_Ch>::render()
+void Button<_Ch>::render() const
 {
     IStaticBox::render();
     _text->render_text(_title, _font, _title_color,
@@ -436,7 +481,7 @@ LowBox<_Ch>::LowBox(Window& parent_window, const Font<char_type>& font) :
 /// TODO: Text must be rendered without breaking the words (exception: too long
 /// words, for now just break them in place)
 template <typename _Ch>
-void LowBox<_Ch>::render()
+void LowBox<_Ch>::render() const
 {
     _text_box.render();
     _name_box.render();

@@ -1,10 +1,9 @@
 #include "Fonts.hpp"
 
 #include <glad/glad.h>
+#include "freetype/freetype.h"
 #include <filesystem>
 #include <array>
-#include <iostream>
-#include "freetype/freetype.h"
 
 namespace vino {
 
@@ -293,4 +292,5 @@ template class Font<char32_t>;
 template class FontsCollection<char>;
 template class FontsCollection<char16_t>;
 template class FontsCollection<char32_t>;
+
 }  // namespace vino

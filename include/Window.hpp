@@ -1,21 +1,18 @@
 #pragma once
 
-// clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "custom_errors.hpp"
 
 #include <cstdint>
 #include <string>
 
-#include "custom_errors.hpp"
-// clang-format on
-
 namespace vino {
 
 /**
-@brief Base Window class
-@warning Don't actually create glfw window
-*/
+ * @brief Base Window class
+ * @warning Don't actually create glfw window
+ */
 class Window {
 public:
     Window(const Window& other) = delete;
@@ -37,14 +34,7 @@ public:
     [[nodiscard]] uint32_t            get_height() const;
 
 protected:
-    Window(uint32_t width, uint32_t height) : _width(width), _height(height)
-    {
-        glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    }
+    Window(uint32_t width, uint32_t height);
 
     uint32_t    _width{};
     uint32_t    _height{};

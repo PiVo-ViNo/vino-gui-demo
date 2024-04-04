@@ -39,7 +39,7 @@ public:
         // return Error code, so 0 is success (well, i didn't this C code)
         if (FT_Init_FreeType(&_native_ft_lib)) {
             throw WindowError(
-                "ERROR::FREETYPE::Couldn't init FreeType2 library");
+                    "ERROR::FREETYPE::Couldn't init FreeType2 library");
         }
     }
 
@@ -75,11 +75,11 @@ private:
     friend class FontsCollection<char_type>;
 
     FreeTypeFace(
-        FT_Library& ft_lib, std::string font_path, unsigned int pxl_size);
+            FT_Library& ft_lib, std::string font_path, unsigned int pxl_size);
 
     /// @param `pixel_height` can be ommited, makes it equal to `pixel_width`
     void set_pixel_size(
-        unsigned int pixel_width, unsigned int pixel_height = 0);
+            unsigned int pixel_width, unsigned int pixel_height = 0);
 
     Character& load_symbol(char_type ch, bool in_cycle = false);
     void       load_ascii();
@@ -89,6 +89,11 @@ private:
     std::map<char_type, Character> _chars_map{};
 };
 
+/**
+ * @brief External safe interface for font operations
+ * @details This class is safer to operate than FreeTypeFace
+ * @tparam _Ch 
+ */
 template <typename _Ch>
 class Font {
 public:
@@ -97,20 +102,27 @@ public:
     explicit Font(FreeTypeFace<char_type>& face) : _face(face) {}
 
     void render_str(const std::basic_string<char_type>& str, unsigned int vbo,
-        glm::uvec2 ll_pos, float scale) const;
+            glm::uvec2 ll_pos, float scale) const;
 
     /// @return how many chars from str was rendered
     std::size_t render_str_inbound(const std::basic_string<char_type>& str,
-        unsigned int vbo, glm::uvec2 ll_pos, float scale,
-        unsigned int x_bound) const;
+            unsigned int vbo, glm::uvec2 ll_pos, float scale,
+            unsigned int x_bound) const;
 
     [[nodiscard]] glm::uvec2 get_dimensions_of(
-        const std::string& str, float scale) const;
+            const std::string& str, float scale) const;
 
 private:
     FreeTypeFace<char_type>& _face;
 };
 
+/**
+ * @brief Main class for fonts configurations
+ * @details All configuration related actions with fonts must go through this
+ * class: adding, changing size, etc. Inside this class all operations go
+ * through std::map of fonts
+ * @tparam _Ch char_type
+ */
 template <typename _Ch>
 class FontsCollection {
 public:
