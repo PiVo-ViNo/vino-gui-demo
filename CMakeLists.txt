@@ -25,8 +25,11 @@ FetchContent_MakeAvailable(glm ft2 glfw)
  
 add_compile_options(-Wall -Wextra -gdwarf-4)
 
-add_executable(vino_gui 
-    src/main.cpp 
+# ---- Additional cmake function to add target definitions ----
+include(cmake/add_default_target_compile_definitions.cmake)
+
+# Object Library
+add_library(libvinogui OBJECT 
     src/glad.c 
     src/Window.cpp
     src/TitleScreen.cpp
@@ -35,33 +38,28 @@ add_executable(vino_gui
     src/Fonts.cpp
     src/Box.cpp
 )
-add_link_options(-Wl,"/entry:mainCRTStartup /subsystem:windows")
-target_include_directories(vino_gui
+
+target_include_directories(libvinogui
     PUBLIC "${CMAKE_SOURCE_DIR}/include"
     PUBLIC "${DEPS_SRC}/ft2/include"
     PUBLIC "${DEPS_SRC}/glm"
     PUBLIC "${DEPS_SRC}/glfw3/include"
 )
- 
-target_link_libraries(vino_gui 
-    PRIVATE glfw
-    PRIVATE freetype 
+add_default_target_compile_definitions(libvinogui)
+
+target_link_libraries(libvinogui
+    PUBLIC glfw
+    PUBLIC freetype
 )
- 
-# add_executable(ft_test
-#    src/ft_test.cpp
-#    src/glad.c
-# )
-# target_include_directories(ft_test
-#    PUBLIC "${CMAKE_SOURCE_DIR}/include"
-#    PUBLIC "${DEPS_SRC}/ft2/include"
-#    PUBLIC "${DEPS_SRC}/glm"
-# )
-# target_link_libraries(ft_test
-#    PRIVATE glfw3
-#    PRIVATE freetype 
-#    PRIVATE User32.dll
-# )
+# Executable
+add_executable(vino_gui_exe src/main.cpp)
+add_executable(vino_gui::exe ALIAS vino_gui_exe)
+add_default_target_compile_definitions(vino_gui_exe)
+
+set_property(TARGET vino_gui_exe PROPERTY OUTPUT_NAME vino_gui)
+
+add_link_options(-Wl,"/entry:mainCRTStartup /subsystem:windows")
+target_link_libraries(vino_gui_exe PRIVATE libvinogui)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
