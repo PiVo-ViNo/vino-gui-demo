@@ -6,3 +6,7 @@ _deps_src
 out/
 src/ft_test.cpp
 release/
+*.exe
+*.dll
+*.o
+*.obj

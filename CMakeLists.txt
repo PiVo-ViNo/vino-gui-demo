@@ -60,10 +60,16 @@ target_link_libraries(vinogui
     PUBLIC freetype
 )
 # Executable
-add_executable(ViNo_gui_exe WIN32
-    src/main.cpp
-    src/TitleScreen.cpp
-    src/MainMenu.cpp
+if(WIN32)
+    add_executable(ViNo_gui_exe WIN32)
+else()
+    add_executable(ViNo_gui_exe)
+endif()
+
+target_sources(ViNo_gui_exe
+    PUBLIC src/main.cpp
+    PUBLIC src/TitleScreen.cpp
+    PUBLIC src/MainMenu.cpp
 )
 add_executable(ViNo_gui::exe ALIAS ViNo_gui_exe)
 add_default_target_compile_definitions(ViNo_gui_exe)
